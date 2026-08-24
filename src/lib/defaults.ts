@@ -19,7 +19,7 @@ export const defaultConfig: UnattendConfig = {
   edition: 'Pro',
   productKeyMode: 'none',
   productKeyCustom: '',
-  diskMode: 'wipe0',
+  diskMode: 'interactive',
   volumes: DEFAULT_VOLUMES.map((v) => ({ ...v })),
   installDrive: 'C',
   computerName: '',
