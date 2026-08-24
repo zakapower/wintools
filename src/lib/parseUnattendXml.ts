@@ -1,4 +1,4 @@
-import { BLOAT_PACKAGES } from './bloatPackages.ts'
+import { BLOAT_PACKAGES } from './debloatScript.ts'
 import { ALL_KEEP_APPS, defaultConfig } from './defaults.ts'
 import { INSTALL_APP_CATALOG } from './installApps.ts'
 import type { Edition, KeepAppId, UnattendConfig } from './types.ts'
@@ -105,14 +105,15 @@ function decodeEncodedCommand(cmd: string): string | null {
 function parseKeepAppsFromScript(script: string): KeepAppId[] {
   const removed = new Set<string>()
   for (const pkg of BLOAT_PACKAGES) {
-    if (script.includes(`"${pkg.id}"`) || script.includes(`'${pkg.id}'`)) {
-      removed.add(pkg.id)
-    }
+    const hit = pkg.ids.some(
+      (id) => script.includes(`"${id}"`) || script.includes(`'${id}'`),
+    )
+    if (hit) removed.add(pkg.removeUnless)
   }
   const keep = ALL_KEEP_APPS.filter((id) => {
     const pkgs = BLOAT_PACKAGES.filter((p) => p.removeUnless === id)
     if (!pkgs.length) return true
-    return pkgs.every((p) => !removed.has(p.id))
+    return pkgs.every((p) => !removed.has(p.removeUnless))
   })
   if (/Get-AppxPackage -AllUsers \*Edge\*/i.test(script)) {
     return keep.filter((id) => id !== 'edge')

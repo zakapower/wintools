@@ -1,5 +1,5 @@
 import type { UnattendConfig } from './types.ts'
-import { BLOAT_PACKAGES } from './bloatPackages.ts'
+import { buildDebloatLines } from './debloatScript.ts'
 import {
   INSTALL_APP_CATALOG,
   VCREDIST_X86_WINGET_ID,
@@ -147,28 +147,7 @@ function runSynchronousXml(cfg: UnattendConfig): string {
 }
 
 function bloatScript(cfg: UnattendConfig): string {
-  const keep = new Set(cfg.keepApps)
-  const remove = BLOAT_PACKAGES.filter((p) => !keep.has(p.removeUnless)).map(
-    (p) => p.id,
-  )
-
-  const removeCmds = remove.map(
-      (id) =>
-        `Get-AppxPackage -AllUsers "${id}" | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue; Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "${id}" } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue`,
-    )
-  const lines = [
-    '$ErrorActionPreference = "SilentlyContinue"',
-    ...removeCmds,
-    ...removeCmds,
-  ]
-
-  if (!keep.has('edge')) {
-    lines.push(
-      'Get-AppxPackage -AllUsers *Edge* | Where-Object { $_.Name -notmatch "Dev|Beta|Canary" } | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue',
-      'Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*Edge*" } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue',
-    )
-  }
-
+  const lines = [...buildDebloatLines(cfg)]
   if (cfg.disableWidgets) {
     lines.push(
       'reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Dsh" /v AllowNewsAndInterests /t REG_DWORD /d 0 /f',
