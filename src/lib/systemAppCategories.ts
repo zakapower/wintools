@@ -32,6 +32,7 @@ const WINDOWS: KeepAppId[] = [
   'windowsNotepad',
   'windowsStore',
   'windowsTerminal',
+  'powerShell',
   'paint',
   'zuneMusic',
   'zuneVideo',

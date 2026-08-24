@@ -63,6 +63,7 @@ export const BLOAT_PACKAGES: { ids: string[]; removeUnless: KeepAppId }[] = [
   { ids: ['Microsoft.WindowsNotepad'], removeUnless: 'windowsNotepad' },
   { ids: ['Microsoft.WindowsStore'], removeUnless: 'windowsStore' },
   { ids: ['Microsoft.WindowsTerminal'], removeUnless: 'windowsTerminal' },
+  { ids: ['Microsoft.PowerShell'], removeUnless: 'powerShell' },
   { ids: ['Microsoft.Xbox.TCUI'], removeUnless: 'tCUI' },
   { ids: ['Microsoft.XboxGameOverlay'], removeUnless: 'xboxGameOverlay' },
   { ids: ['Microsoft.XboxGamingOverlay'], removeUnless: 'xboxGamingOverlay' },

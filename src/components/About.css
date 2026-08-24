@@ -93,13 +93,11 @@
   border-radius: 0;
   background: transparent;
   padding: 0.85rem 0;
-  border-top: 1px solid var(--line);
 }
 
 .about-panel .about-tile:first-child,
 .about-panel .about-steps li:first-child,
 .about-panel .about-alert:first-child {
-  border-top: none;
   padding-top: 0;
 }
 
@@ -127,12 +125,10 @@
 }
 
 .about-panel .about-alert--critical {
-  border-top-color: color-mix(in srgb, #dc2626 22%, var(--line));
   background: transparent;
 }
 
 :root[data-theme='dark'] .about-panel .about-alert--critical {
-  border-top-color: color-mix(in srgb, #f87171 26%, var(--line));
   background: transparent;
 }
 

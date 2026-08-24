@@ -128,6 +128,7 @@ export type KeepAppId =
   | 'windowsNotepad'
   | 'windowsStore'
   | 'windowsTerminal'
+  | 'powerShell'
   | 'tCUI'
   | 'xboxGameOverlay'
   | 'xboxGamingOverlay'
@@ -238,6 +239,7 @@ export const APP_CATALOG: AppCatalogEntry[] = [
   { id: 'windowsNotepad', labelRu: 'Блокнот', labelEn: 'Notepad', defaultKeep: true },
   { id: 'windowsStore', labelRu: 'Microsoft Store', labelEn: 'Microsoft Store', defaultKeep: true },
   { id: 'windowsTerminal', labelRu: 'Windows Terminal', labelEn: 'Windows Terminal', defaultKeep: true },
+  { id: 'powerShell', labelRu: 'PowerShell', labelEn: 'PowerShell', defaultKeep: true },
   { id: 'tCUI', labelRu: 'Xbox TCUI', labelEn: 'Xbox TCUI Framework' },
   { id: 'xboxGameOverlay', labelRu: 'Xbox Game Overlay', labelEn: 'Xbox Game Overlay' },
   { id: 'xboxGamingOverlay', labelRu: 'Xbox Gaming Overlay / Game Bar', labelEn: 'Xbox Gaming Overlay' },
