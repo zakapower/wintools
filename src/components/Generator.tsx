@@ -37,6 +37,16 @@ import {
 } from '@/lib/diskVolumes'
 import './Generator.css'
 
+function ChoiceCopy({ title, hint }: { title: string; hint?: string }) {
+  if (!hint) return <span className="choice__text">{title}</span>
+  return (
+    <span className="choice__body">
+      <span className="choice__text">{title}</span>
+      <span className="choice__hint">{hint}</span>
+    </span>
+  )
+}
+
 export function Generator() {
   const { lang, t } = useApp()
   const [cfg, setCfg] = useState<UnattendConfig>(defaultConfig)
@@ -368,8 +378,8 @@ export function Generator() {
         </h1>
         <p className="generator__lead">
           {t(
-            'Настройте разделы, скачайте файл и положите в корень установочной флешки Windows 11. Как записать флешку и уйти от ПК - в',
-            'Configure the sections, download the file, and put it in the root of your Windows 11 install USB. How to write the USB and walk away is in the',
+            'Заполните разделы ниже, скачайте файл и положите его в корень флешки с Windows 11. Как подготовить носитель, смотрите в',
+            'Fill in the sections below, download the file, and put it in the root of your Windows 11 USB. How to prepare the drive is in the',
           )}{' '}
           <Link href="/guide">{t('Инструкции', 'Guide')}</Link>.
         </p>
@@ -554,8 +564,8 @@ export function Generator() {
           {cfg.productKeyMode === 'none' && (
             <p className="field__hint">
               {t(
-                'Экран ключа не показывается. Редакция берётся из ISO.',
-                'The key screen is skipped. Edition comes from the ISO.',
+                'Ключ в файл не пишется. Setup возьмёт OEM/цифровую лицензию или позволит пропустить экран. Редакция — из ISO.',
+                'No key is written to the file. Setup uses the OEM/digital license or lets you skip the screen. Edition comes from the ISO.',
               )}
             </p>
           )}
@@ -1021,9 +1031,13 @@ export function Generator() {
                   onChange={(e) => patch('darkTheme', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Тёмная тема', 'Dark theme')}
-                </span>
+                <ChoiceCopy
+                  title={t('Тёмная тема', 'Dark theme')}
+                  hint={t(
+                    'Тёмные окна с первого входа',
+                    'Dark apps from first logon',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1032,9 +1046,13 @@ export function Generator() {
                   onChange={(e) => patch('classicContextMenu', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Классическое меню ПКМ', 'Classic context menu')}
-                </span>
+                <ChoiceCopy
+                  title={t('Классическое меню ПКМ', 'Classic context menu')}
+                  hint={t(
+                    'Меню как в Windows 10',
+                    'Right-click menu like Windows 10',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1043,9 +1061,13 @@ export function Generator() {
                   onChange={(e) => patch('disableCopilot', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Выключить Copilot', 'Turn off Copilot')}
-                </span>
+                <ChoiceCopy
+                  title={t('Выключить Copilot', 'Turn off Copilot')}
+                  hint={t(
+                    'Убирает кнопку Copilot',
+                    'Removes the Copilot button',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1054,9 +1076,13 @@ export function Generator() {
                   onChange={(e) => patch('disableRecall', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Выключить Recall', 'Turn off Recall')}
-                </span>
+                <ChoiceCopy
+                  title={t('Выключить Recall', 'Turn off Recall')}
+                  hint={t(
+                    'Без снимков экрана для поиска',
+                    'No screen snapshots for search',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1065,9 +1091,13 @@ export function Generator() {
                   onChange={(e) => patch('disableStartAds', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Убрать рекламу в Пуске', 'Remove Start ads')}
-                </span>
+                <ChoiceCopy
+                  title={t('Убрать рекламу в Пуске', 'Remove Start ads')}
+                  hint={t(
+                    'Меньше промо в меню Пуск',
+                    'Fewer promos in Start',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1076,9 +1106,16 @@ export function Generator() {
                   onChange={(e) => patch('highPerformance', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('План «высокая производительность»', 'High performance power plan')}
-                </span>
+                <ChoiceCopy
+                  title={t(
+                    'План «высокая производительность»',
+                    'High performance power plan',
+                  )}
+                  hint={t(
+                    'Максимум скорости, больше расход',
+                    'Max speed, higher power use',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1087,9 +1124,13 @@ export function Generator() {
                   onChange={(e) => patch('disableBitLocker', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Выключить BitLocker', 'Turn off BitLocker')}
-                </span>
+                <ChoiceCopy
+                  title={t('Выключить BitLocker', 'Turn off BitLocker')}
+                  hint={t(
+                    'Без шифрования диска при установке',
+                    'No drive encryption during setup',
+                  )}
+                />
               </label>
             </div>
           </div>
@@ -1106,9 +1147,13 @@ export function Generator() {
                   onChange={(e) => patch('disableWidgets', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Отключить виджеты / новости', 'Disable widgets / news')}
-                </span>
+                <ChoiceCopy
+                  title={t('Отключить виджеты / новости', 'Disable widgets / news')}
+                  hint={t(
+                    'Без ленты новостей и виджетов',
+                    'No news feed or widgets',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1119,12 +1164,16 @@ export function Generator() {
                   }
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t(
+                <ChoiceCopy
+                  title={t(
                     'Меньше предложений приложений',
                     'Fewer app suggestions',
                   )}
-                </span>
+                  hint={t(
+                    'Меньше рекламы Store',
+                    'Fewer Store ads',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1133,28 +1182,20 @@ export function Generator() {
                   onChange={(e) => patch('disableTelemetry', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Ограничить телеметрию', 'Limit telemetry')}
-                </span>
+                <ChoiceCopy
+                  title={t('Ограничить телеметрию', 'Limit telemetry')}
+                  hint={t(
+                    'Меньше данных Microsoft',
+                    'Less data to Microsoft',
+                  )}
+                />
               </label>
             </div>
             <fieldset className="field">
               <legend className="field__label">
                 {t('Конфиденциальность (Express)', 'Privacy (Express)')}
               </legend>
-              <div className="choices">
-                <label className="choice">
-                  <input
-                    type="radio"
-                    name="expressPrivacy"
-                    checked={cfg.expressPrivacy === 'disable-all'}
-                    onChange={() => patch('expressPrivacy', 'disable-all')}
-                  />
-                  <span className="choice__mark choice__mark--radio" aria-hidden />
-                  <span className="choice__text">
-                    {t('Минимум данных Microsoft', 'Minimize Microsoft data')}
-                  </span>
-                </label>
+              <div className="choices choices--tweaks">
                 <label className="choice">
                   <input
                     type="radio"
@@ -1163,9 +1204,32 @@ export function Generator() {
                     onChange={() => patch('expressPrivacy', 'default')}
                   />
                   <span className="choice__mark choice__mark--radio" aria-hidden />
-                  <span className="choice__text">
-                    {t('По умолчанию Windows', 'Windows defaults')}
-                  </span>
+                  <ChoiceCopy
+                    title={t('По умолчанию Windows', 'Windows defaults')}
+                    hint={t(
+                      'Стандартные параметры Windows',
+                      'Standard Windows settings',
+                    )}
+                  />
+                </label>
+                <label className="choice">
+                  <input
+                    type="radio"
+                    name="expressPrivacy"
+                    checked={cfg.expressPrivacy === 'disable-all'}
+                    onChange={() => patch('expressPrivacy', 'disable-all')}
+                  />
+                  <span className="choice__mark choice__mark--radio" aria-hidden />
+                  <ChoiceCopy
+                    title={t(
+                      'Минимум данных Microsoft',
+                      'Minimize Microsoft data',
+                    )}
+                    hint={t(
+                      'Отключает Express в OOBE',
+                      'Turns off Express privacy in OOBE',
+                    )}
+                  />
                 </label>
               </div>
             </fieldset>
@@ -1183,9 +1247,13 @@ export function Generator() {
                   onChange={(e) => patch('showFileExtensions', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Показывать расширения файлов', 'Show file extensions')}
-                </span>
+                <ChoiceCopy
+                  title={t('Показывать расширения файлов', 'Show file extensions')}
+                  hint={t(
+                    'Всегда видно .exe, .pdf и др.',
+                    'Always shows .exe, .pdf, etc.',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1194,9 +1262,13 @@ export function Generator() {
                   onChange={(e) => patch('showHiddenFiles', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Показывать скрытые файлы', 'Show hidden files')}
-                </span>
+                <ChoiceCopy
+                  title={t('Показывать скрытые файлы', 'Show hidden files')}
+                  hint={t(
+                    'Показывает скрытые файлы и папки',
+                    'Shows hidden files and folders',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1205,9 +1277,13 @@ export function Generator() {
                   onChange={(e) => patch('enableLongPaths', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Длинные пути (>260)', 'Long paths (>260)')}
-                </span>
+                <ChoiceCopy
+                  title={t('Длинные пути (>260)', 'Long paths (>260)')}
+                  hint={t(
+                    'Пути длиннее 260 символов',
+                    'Paths longer than 260 chars',
+                  )}
+                />
               </label>
             </div>
           </div>
@@ -1224,9 +1300,13 @@ export function Generator() {
                   onChange={(e) => patch('taskbarSearchHidden', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Скрыть поиск на панели задач', 'Hide taskbar search')}
-                </span>
+                <ChoiceCopy
+                  title={t('Скрыть поиск на панели задач', 'Hide taskbar search')}
+                  hint={t(
+                    'Убирает поле поиска',
+                    'Removes the search box',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1235,9 +1315,13 @@ export function Generator() {
                   onChange={(e) => patch('taskbarAlignLeft', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Панель задач слева', 'Taskbar align left')}
-                </span>
+                <ChoiceCopy
+                  title={t('Панель задач слева', 'Taskbar align left')}
+                  hint={t(
+                    'Иконки слева, как в Windows 10',
+                    'Icons left, like Windows 10',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1248,9 +1332,13 @@ export function Generator() {
                   }
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Скрыть «Просмотр задач»', 'Hide Task View')}
-                </span>
+                <ChoiceCopy
+                  title={t('Скрыть «Просмотр задач»', 'Hide Task View')}
+                  hint={t(
+                    'Без кнопки рабочих столов',
+                    'No virtual desktops button',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1259,9 +1347,13 @@ export function Generator() {
                   onChange={(e) => patch('taskbarHideChat', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Скрыть чат / Teams', 'Hide Chat / Teams')}
-                </span>
+                <ChoiceCopy
+                  title={t('Скрыть чат / Teams', 'Hide Chat / Teams')}
+                  hint={t(
+                    'Убирает иконку чата',
+                    'Removes the chat icon',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1272,9 +1364,13 @@ export function Generator() {
                   }
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Скрыть виджеты на панели', 'Hide taskbar widgets')}
-                </span>
+                <ChoiceCopy
+                  title={t('Скрыть виджеты на панели', 'Hide taskbar widgets')}
+                  hint={t(
+                    'Убирает кнопку виджетов',
+                    'Removes the widgets button',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1285,9 +1381,13 @@ export function Generator() {
                   }
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Секунды на часах', 'Show seconds on clock')}
-                </span>
+                <ChoiceCopy
+                  title={t('Секунды на часах', 'Show seconds on clock')}
+                  hint={t(
+                    'Часы показывают секунды',
+                    'Clock shows seconds',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1296,9 +1396,13 @@ export function Generator() {
                   onChange={(e) => patch('taskbarEndTask', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('«Завершить задачу» в меню', 'End task in taskbar menu')}
-                </span>
+                <ChoiceCopy
+                  title={t('«Завершить задачу» в меню', 'End task in taskbar menu')}
+                  hint={t(
+                    'ПКМ: завершить без диспетчера',
+                    'Right-click to end without Task Manager',
+                  )}
+                />
               </label>
             </div>
           </div>
@@ -1315,9 +1419,13 @@ export function Generator() {
                   onChange={(e) => patch('disableGameDvr', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Отключить Game DVR', 'Disable Game DVR')}
-                </span>
+                <ChoiceCopy
+                  title={t('Отключить Game DVR', 'Disable Game DVR')}
+                  hint={t(
+                    'Без фоновой записи игр',
+                    'No background game recording',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1326,9 +1434,13 @@ export function Generator() {
                   onChange={(e) => patch('numLockOn', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('NumLock при входе', 'NumLock on at logon')}
-                </span>
+                <ChoiceCopy
+                  title={t('NumLock при входе', 'NumLock on at logon')}
+                  hint={t(
+                    'NumLock на экране входа',
+                    'NumLock on at sign-in',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1337,9 +1449,13 @@ export function Generator() {
                   onChange={(e) => patch('disableOneDrive', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Удалить OneDrive', 'Uninstall OneDrive')}
-                </span>
+                <ChoiceCopy
+                  title={t('Удалить OneDrive', 'Uninstall OneDrive')}
+                  hint={t(
+                    'Удаляет клиент после установки',
+                    'Removes the client after setup',
+                  )}
+                />
               </label>
               <label className="choice">
                 <input
@@ -1348,9 +1464,13 @@ export function Generator() {
                   onChange={(e) => patch('disableHibernation', e.target.checked)}
                 />
                 <span className="choice__mark" aria-hidden />
-                <span className="choice__text">
-                  {t('Отключить гибернацию', 'Disable hibernation')}
-                </span>
+                <ChoiceCopy
+                  title={t('Отключить гибернацию', 'Disable hibernation')}
+                  hint={t(
+                    'Выключает гибернацию и hiberfil.sys',
+                    'Turns off hibernation and hiberfil.sys',
+                  )}
+                />
               </label>
             </div>
           </div>

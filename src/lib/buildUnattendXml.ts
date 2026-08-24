@@ -44,6 +44,9 @@ function productKeyValue(cfg: UnattendConfig): string {
 
 function productKeyUserDataXml(cfg: UnattendConfig): string {
   const key = productKeyValue(cfg)
+  // Empty <Key> is invalid per Microsoft unattend docs and fails Setup
+  // immediately when WillShowUI is Never. Omit the whole block for "no key".
+  if (!key) return ''
   return `<ProductKey>
           <Key>${esc(key)}</Key>
           <WillShowUI>Never</WillShowUI>

@@ -80,19 +80,19 @@ test('wipe disk targets first internal disk, not USB Disk 0', () => {
   assert.match(disk, /PEFirmwareType/)
 })
 
-test('product key is under UserData and never shows the key UI', () => {
+test('product key is omitted when none and never shows UI when custom', () => {
   const none = buildUnattendXml(sampleConfig)
-  assert.match(
-    none,
-    /<ProductKey>\s*<Key>\s*<\/Key>\s*<WillShowUI>Never<\/WillShowUI>\s*<\/ProductKey>/,
-  )
+  assert.doesNotMatch(none, /<ProductKey>/)
+  assert.doesNotMatch(none, /<Key>\s*<\/Key>/)
   const custom = buildUnattendXml({
     ...sampleConfig,
     productKeyMode: 'custom',
     productKeyCustom: 'AAAAA-BBBBB-CCCCC-DDDDD-EEEEE',
   })
-  assert.match(custom, /<Key>AAAAA-BBBBB-CCCCC-DDDDD-EEEEE<\/Key>/)
-  assert.match(custom, /<WillShowUI>Never<\/WillShowUI>/)
+  assert.match(
+    custom,
+    /<ProductKey>\s*<Key>AAAAA-BBBBB-CCCCC-DDDDD-EEEEE<\/Key>\s*<WillShowUI>Never<\/WillShowUI>\s*<\/ProductKey>/,
+  )
   assert.doesNotMatch(custom, /VK7JG-NPHTM-C97JM-9MPGT-3V66T/)
 })
 
