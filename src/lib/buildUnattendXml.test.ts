@@ -98,9 +98,9 @@ test('product key uses generic GVLK when none and custom key when set', () => {
   )
 })
 
-test('interactive disk mode is rejected', () => {
+test('interactive disk mode is allowed', () => {
   const errors = validateConfig({ ...sampleConfig, diskMode: 'interactive' })
-  assert.ok(errors.some((e) => e.targetId === 'field-volumes'))
+  assert.equal(errors.length, 0)
 })
 
 test('OOBE hides privacy when disable-all', () => {

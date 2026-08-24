@@ -572,122 +572,170 @@ export function Generator() {
 
         <section id="disk" className="block">
           <h2 className="block__title">{t('Диск', 'Disk')}</h2>
+          <fieldset className="field">
+            <legend className="field__label">{t('Режим', 'Mode')}</legend>
+            <div className="choices">
+              <label className="choice">
+                <input
+                  type="radio"
+                  name="diskMode"
+                  checked={cfg.diskMode === 'interactive'}
+                  onChange={() =>
+                    setCfg((prev) => ({
+                      ...prev,
+                      diskMode: 'interactive',
+                      installDrive: 'C',
+                    }))
+                  }
+                />
+                <span className="choice__mark choice__mark--radio" aria-hidden />
+                <span className="choice__text">
+                  {t(
+                    'Выбрать раздел вручную в Setup',
+                    'Pick the partition manually in Setup',
+                  )}
+                </span>
+              </label>
+              <label className="choice">
+                <input
+                  type="radio"
+                  name="diskMode"
+                  checked={cfg.diskMode === 'wipe0'}
+                  onChange={() => patch('diskMode', 'wipe0')}
+                />
+                <span className="choice__mark choice__mark--radio" aria-hidden />
+                <span className="choice__text">
+                  {t(
+                    'Стереть системный диск и разметить автоматически',
+                    'Wipe the internal disk and partition automatically',
+                  )}
+                </span>
+              </label>
+            </div>
+          </fieldset>
           <p className="field__hint">
-            {t(
-              'Авторазметка: WinPE сам найдёт внутренний диск, создаст разделы и установит Windows без экранов Setup. Если диск меньше суммы разделов, C: уменьшится автоматически.',
-              'Automatic layout: WinPE finds the internal disk, creates volumes, and installs Windows with no Setup prompts. If the disk is smaller than the sizes below, C: shrinks automatically.',
-            )}
+            {cfg.diskMode === 'wipe0'
+              ? t(
+                  'Полностью автоматическая установка: WinPE сам разметит диск, распакует образ через dism и перезагрузится. Экраны ключа, редакции и диска не показываются. Можно уйти. Если диск меньше суммы разделов, C: уменьшится автоматически.',
+                  'Fully unattended install: WinPE partitions the disk, applies the image with dism, and reboots. No product key, edition, or disk screens. Walk away. If the disk is smaller than the volume sizes, C: shrinks automatically.',
+                )
+              : t(
+                  'Ручной режим: Setup спросит, куда ставить Windows. Для установки без участия выберите авторазметку.',
+                  'Manual mode: Setup will ask where to install Windows. For hands-off install, use automatic partitioning.',
+                )}
           </p>
-          <div id="field-volumes" className={`field${flashClass('field-volumes')}`}>
-                <div className="field__label">
-                  {t('Разделы (2-5)', 'Volumes (2-5)')}
-                </div>
-                <div className="volume-list">
-                  {cfg.volumes.map((vol, index) => {
-                    const isLast = index === cfg.volumes.length - 1
-                    const isFirst = index === 0
-                    return (
-                      <div key={`${vol.letter}-${index}`} className="volume-row">
-                        <label className="volume-row__letter">
-                          <span className="field__label">
-                            {t('Буква', 'Letter')}
-                          </span>
-                          {isFirst ? (
-                            <input
-                              className="field__control"
-                              value="C"
-                              disabled
-                              readOnly
-                            />
-                          ) : (
-                            <DeferredTextInput
-                              className="field__control"
-                              value={vol.letter}
-                              maxLength={1}
-                              onCommit={(v) =>
-                                updateVolume(index, {
-                                  letter:
-                                    v.toUpperCase().slice(0, 1) || vol.letter,
-                                })
-                              }
-                            />
-                          )}
-                        </label>
-                        <label className="volume-row__label">
-                          <span className="field__label">
-                            {t('Метка', 'Label')}
-                          </span>
+          {cfg.diskMode === 'wipe0' && (
+            <div id="field-volumes" className={`field${flashClass('field-volumes')}`}>
+              <div className="field__label">
+                {t('Разделы (2-5)', 'Volumes (2-5)')}
+              </div>
+              <div className="volume-list">
+                {cfg.volumes.map((vol, index) => {
+                  const isLast = index === cfg.volumes.length - 1
+                  const isFirst = index === 0
+                  return (
+                    <div key={`${vol.letter}-${index}`} className="volume-row">
+                      <label className="volume-row__letter">
+                        <span className="field__label">
+                          {t('Буква', 'Letter')}
+                        </span>
+                        {isFirst ? (
+                          <input
+                            className="field__control"
+                            value="C"
+                            disabled
+                            readOnly
+                          />
+                        ) : (
                           <DeferredTextInput
                             className="field__control"
-                            value={vol.label}
-                            onCommit={(v) => updateVolume(index, { label: v })}
+                            value={vol.letter}
+                            maxLength={1}
+                            onCommit={(v) =>
+                              updateVolume(index, {
+                                letter:
+                                  v.toUpperCase().slice(0, 1) || vol.letter,
+                              })
+                            }
                           />
-                        </label>
-                        <label className="volume-row__size">
-                          <span className="field__label">
-                            {isLast
-                              ? t('Размер', 'Size')
-                              : t('Размер (ГБ)', 'Size (GB)')}
-                          </span>
-                          {isLast ? (
-                            <input
-                              className="field__control"
-                              value={t('остаток', 'remainder')}
-                              disabled
-                              readOnly
-                            />
-                          ) : (
-                            <DeferredTextInput
-                              className="field__control"
-                              inputMode="numeric"
-                              value={
-                                vol.sizeGb == null ? '' : String(vol.sizeGb)
+                        )}
+                      </label>
+                      <label className="volume-row__label">
+                        <span className="field__label">
+                          {t('Метка', 'Label')}
+                        </span>
+                        <DeferredTextInput
+                          className="field__control"
+                          value={vol.label}
+                          onCommit={(v) => updateVolume(index, { label: v })}
+                        />
+                      </label>
+                      <label className="volume-row__size">
+                        <span className="field__label">
+                          {isLast
+                            ? t('Размер', 'Size')
+                            : t('Размер (ГБ)', 'Size (GB)')}
+                        </span>
+                        {isLast ? (
+                          <input
+                            className="field__control"
+                            value={t('остаток', 'remainder')}
+                            disabled
+                            readOnly
+                          />
+                        ) : (
+                          <DeferredTextInput
+                            className="field__control"
+                            inputMode="numeric"
+                            value={
+                              vol.sizeGb == null ? '' : String(vol.sizeGb)
+                            }
+                            onCommit={(v) => {
+                              const trimmed = v.trim()
+                              if (!trimmed) {
+                                updateVolume(index, { sizeGb: null })
+                                return
                               }
-                              onCommit={(v) => {
-                                const trimmed = v.trim()
-                                if (!trimmed) {
-                                  updateVolume(index, { sizeGb: null })
-                                  return
-                                }
-                                const n = Number(trimmed)
-                                updateVolume(index, {
-                                  sizeGb: Number.isFinite(n) ? n : null,
-                                })
-                              }}
-                            />
-                          )}
-                        </label>
-                        <div className="volume-row__actions">
-                          <span className="field__label" aria-hidden>
-                            {'\u00a0'}
-                          </span>
-                          {!isFirst && cfg.volumes.length > MIN_VOLUMES ? (
-                            <button
-                              type="button"
-                              className="volume-row__remove"
-                              onClick={() => removeVolume(index)}
-                              aria-label={t('Убрать', 'Remove')}
-                            >
-                              <Trash2 size={18} strokeWidth={2} aria-hidden />
-                            </button>
-                          ) : (
-                            <span className="volume-row__remove-slot" aria-hidden />
-                          )}
-                        </div>
+                              const n = Number(trimmed)
+                              updateVolume(index, {
+                                sizeGb: Number.isFinite(n) ? n : null,
+                              })
+                            }}
+                          />
+                        )}
+                      </label>
+                      <div className="volume-row__actions">
+                        <span className="field__label" aria-hidden>
+                          {'\u00a0'}
+                        </span>
+                        {!isFirst && cfg.volumes.length > MIN_VOLUMES ? (
+                          <button
+                            type="button"
+                            className="volume-row__remove"
+                            onClick={() => removeVolume(index)}
+                            aria-label={t('Убрать', 'Remove')}
+                          >
+                            <Trash2 size={18} strokeWidth={2} aria-hidden />
+                          </button>
+                        ) : (
+                          <span className="volume-row__remove-slot" aria-hidden />
+                        )}
                       </div>
-                    )
-                  })}
-                </div>
-                {cfg.volumes.length < MAX_VOLUMES && (
-                  <button
-                    type="button"
-                    className="btn btn--ghost volume-list__add"
-                    onClick={addVolume}
-                  >
-                    {t('Добавить раздел', 'Add volume')}
-                  </button>
-                )}
+                    </div>
+                  )
+                })}
               </div>
+              {cfg.volumes.length < MAX_VOLUMES && (
+                <button
+                  type="button"
+                  className="btn btn--ghost volume-list__add"
+                  onClick={addVolume}
+                >
+                  {t('Добавить раздел', 'Add volume')}
+                </button>
+              )}
+            </div>
+          )}
         </section>
 
         <section id="account" className="block">
@@ -905,7 +953,7 @@ export function Generator() {
               )}
             </p>
           )}
-          {cfg.installApps.length > 0 && (
+          {cfg.diskMode === 'wipe0' && cfg.installApps.length > 0 && (
             <div
               className={`field${flashClass('field-install-drive')}`}
               id="field-install-drive"
@@ -928,6 +976,34 @@ export function Generator() {
                   }))}
                 onChange={(v) => patch('installDrive', v)}
               />
+            </div>
+          )}
+          {cfg.diskMode === 'interactive' && cfg.installApps.length > 0 && (
+            <div
+              className={`field${flashClass('field-install-drive')}`}
+              id="field-install-drive"
+            >
+              <span className="field__label">
+                {t('Диск для программ (буква)', 'Apps install drive (letter)')}
+              </span>
+              <DeferredTextInput
+                className="field__control field__control--narrow"
+                value={cfg.installDrive}
+                onCommit={(v) =>
+                  patch('installDrive', v.toUpperCase().slice(0, 1))
+                }
+                maxLength={1}
+                aria-label={t(
+                  'Диск для программ (буква)',
+                  'Apps install drive (letter)',
+                )}
+              />
+              <span className="field__hint">
+                {t(
+                  'Буква раздела, куда Setup поставит Windows (обычно C).',
+                  'Letter of the volume where Setup installs Windows (usually C).',
+                )}
+              </span>
             </div>
           )}
           <div className="apps-toolbar">
@@ -1501,26 +1577,39 @@ export function Generator() {
             <section className="summary__group">
               <h3 className="summary__group-title">{t('Диск', 'Disk')}</h3>
               <dl className="summary__list">
-                <div className="summary__row summary__row--stack">
-                  <dt>{t('Разделы', 'Volumes')}</dt>
+                <div className="summary__row">
+                  <dt>{t('Режим', 'Mode')}</dt>
                   <dd>
-                    <ul className="summary__apps">
-                      {cfg.volumes.map((v, i) => (
-                        <li key={`${v.letter}-${i}`}>
-                          {i === cfg.volumes.length - 1
-                            ? t(
-                                `${v.letter}: остаток «${v.label}»`,
-                                `${v.letter}: remainder “${v.label}”`,
-                              )
-                            : t(
-                                `${v.letter}: ${v.sizeGb ?? '-'} ГБ «${v.label}»`,
-                                `${v.letter}: ${v.sizeGb ?? '-'} GB “${v.label}”`,
-                              )}
-                        </li>
-                      ))}
-                    </ul>
+                    {cfg.diskMode === 'wipe0'
+                      ? t(
+                          'Стереть системный диск и разметить',
+                          'Wipe internal disk and partition',
+                        )
+                      : t('Раздел вручную в Setup', 'Pick partition in Setup')}
                   </dd>
                 </div>
+                {cfg.diskMode === 'wipe0' && (
+                  <div className="summary__row summary__row--stack">
+                    <dt>{t('Разделы', 'Volumes')}</dt>
+                    <dd>
+                      <ul className="summary__apps">
+                        {cfg.volumes.map((v, i) => (
+                          <li key={`${v.letter}-${i}`}>
+                            {i === cfg.volumes.length - 1
+                              ? t(
+                                  `${v.letter}: остаток «${v.label}»`,
+                                  `${v.letter}: remainder “${v.label}”`,
+                                )
+                              : t(
+                                  `${v.letter}: ${v.sizeGb ?? '-'} ГБ «${v.label}»`,
+                                  `${v.letter}: ${v.sizeGb ?? '-'} GB “${v.label}”`,
+                                )}
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                )}
                 {cfg.installApps.length > 0 && (
                   <div className="summary__row">
                     <dt>{t('Программы', 'Apps path')}</dt>

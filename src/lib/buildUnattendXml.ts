@@ -567,15 +567,6 @@ export function validateConfig(
       targetId: 'field-product-key',
     })
   }
-  if (cfg.diskMode === 'interactive') {
-    errors.push({
-      message: t(
-        'Ручной выбор диска больше не поддерживается. Используйте авторазметку.',
-        'Manual disk selection is no longer supported. Use automatic partitioning.',
-      ),
-      targetId: 'field-volumes',
-    })
-  }
   if (cfg.edition === 'Enterprise') {
     errors.push({
       message: t(
