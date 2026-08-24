@@ -524,6 +524,14 @@ export function Generator() {
               onChange={(v) => patch('edition', v as UnattendConfig['edition'])}
             />
           </div>
+          {cfg.edition === 'Enterprise' && (
+            <p className="field__hint field__hint--warn">
+              {t(
+                'Enterprise нет в обычном ISO с microsoft.com. Нужен ISO Enterprise/VL.',
+                'Enterprise is not on the standard microsoft.com ISO. You need an Enterprise/VL ISO.',
+              )}
+            </p>
+          )}
           <fieldset className={`field${flashClass('field-product-key')}`}>
             <legend className="field__label">{t('Ключ продукта', 'Product key')}</legend>
             <div className="choices">
@@ -564,8 +572,8 @@ export function Generator() {
           {cfg.productKeyMode === 'none' && (
             <p className="field__hint">
               {t(
-                'Ключ в файл не пишется. Setup возьмёт OEM/цифровую лицензию или позволит пропустить экран. Редакция из ISO.',
-                'No key is written to the file. Setup uses the OEM/digital license or lets you skip the screen. Edition comes from the ISO.',
+                'Generic-ключ только для выбора редакции при установке. В файл не пишется ваш ключ; активация через OEM/цифровую лицензию или позже.',
+                'A generic key selects the edition during setup only. Your key is not stored; activate via OEM/digital license or later.',
               )}
             </p>
           )}
@@ -617,12 +625,12 @@ export function Generator() {
           <p className="field__hint">
             {cfg.diskMode === 'wipe0'
               ? t(
-                  'Setup сам найдёт внутренний диск, сотрёт его и создаст разделы. Можно уйти: установка не должна останавливаться на выборе диска. Если диск меньше суммы разделов, C: уменьшится автоматически.',
-                  'Setup finds the internal disk, wipes it, and creates the volumes. You can walk away: setup should not stop on the disk screen. If the disk is smaller than the volume sizes, C: shrinks automatically.',
+                  'Полностью автоматическая установка: WinPE сам разметит диск, распакует образ через dism и перезагрузится. Экраны ключа, редакции и диска не показываются. Можно уйти. Если диск меньше суммы разделов, C: уменьшится автоматически.',
+                  'Fully unattended install: WinPE partitions the disk, applies the image with dism, and reboots. No product key, edition, or disk screens. Walk away. If the disk is smaller than the volume sizes, C: shrinks automatically.',
                 )
               : t(
-                  'Установка остановится на выборе раздела - без вас Windows не поставится.',
-                  'Setup will stop on the partition screen - Windows will not install until you pick a disk.',
+                  'Ручной режим: Setup спросит, куда ставить Windows. Для установки без участия выберите авторазметку.',
+                  'Manual mode: Setup will ask where to install Windows. For hands-off install, use automatic partitioning.',
                 )}
           </p>
           {cfg.diskMode === 'wipe0' && (
@@ -948,6 +956,14 @@ export function Generator() {
 
         <section id="apps" className="block">
           <h2 className="block__title">{t('Приложения', 'Apps')}</h2>
+          {cfg.installApps.length > 0 && (
+            <p className="field__hint">
+              {t(
+                'Установка через winget при первом входе. Нужен интернет; без сети Windows всё равно загрузится, программы можно поставить позже.',
+                'Installed via winget on first sign-in. Internet required; without a network Windows still finishes setup and you can install apps later.',
+              )}
+            </p>
+          )}
           {cfg.diskMode === 'wipe0' && (
             <div
               className={`field${flashClass('field-install-drive')}`}
@@ -971,6 +987,31 @@ export function Generator() {
                   }))}
                 onChange={(v) => patch('installDrive', v)}
               />
+            </div>
+          )}
+          {cfg.diskMode === 'interactive' && cfg.installApps.length > 0 && (
+            <div
+              className={`field${flashClass('field-install-drive')}`}
+              id="field-install-drive"
+            >
+              <span className="field__label">
+                {t('Диск для программ (буква)', 'Apps install drive (letter)')}
+              </span>
+              <DeferredTextInput
+                className="field__control field__control--narrow"
+                value={cfg.installDrive}
+                onCommit={(v) =>
+                  patch('installDrive', v.toUpperCase().slice(0, 1))
+                }
+                autoComplete="off"
+                maxLength={1}
+              />
+              <p className="field__hint">
+                {t(
+                  'C: — стандартный путь. D:\\Apps и т.д., если раздел уже есть после установки.',
+                  'C: for default paths. Use D:\\Apps etc. if that volume exists after setup.',
+                )}
+              </p>
             </div>
           )}
           <div className="apps-toolbar">

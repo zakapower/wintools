@@ -59,10 +59,10 @@ $dp=New-Object System.Collections.Generic.List[string]
 $dp.Add("select disk $ix"); $dp.Add('clean')
 if($uefi){ $dp.Add('convert gpt'); $dp.Add('create partition efi size=260'); $dp.Add('format quick fs=fat32 label=EFI'); $dp.Add('create partition msr size=16') } else { $dp.Add('convert mbr'); $dp.Add('create partition primary size=100'); $dp.Add('format quick fs=ntfs label=System'); $dp.Add('active') }
 function Safe($n){ $s=($n -replace '[<>:"/\\\\|?*&=]','').Trim(); if($s){$s}else{'Data'} }
-for($i=0;$i -lt $vols.Count;$i++){
- $last=$i -eq ($vols.Count-1); $n=Safe $vols[$i].N
- if($last){ $dp.Add('create partition primary'); $dp.Add("shrink desired=$re minimum=$re"); $dp.Add("format quick fs=ntfs label=$n") }
- else { if([int]$vols[$i].S -le 0){$dp.Add('create partition primary')}else{$dp.Add("create partition primary size=$($vols[$i].S)")}; $dp.Add("format quick fs=ntfs label=$n") }
+ for($i=0;$i -lt $vols.Count;$i++){
+ $last=$i -eq ($vols.Count-1); $n=Safe $vols[$i].N; $L=$vols[$i].L
+ if($last){ $dp.Add('create partition primary'); $dp.Add("shrink desired=$re minimum=$re"); $dp.Add("format quick fs=ntfs label=$n"); $dp.Add("assign letter=$L") }
+ else { if([int]$vols[$i].S -le 0){$dp.Add('create partition primary')}else{$dp.Add("create partition primary size=$($vols[$i].S)")}; $dp.Add("format quick fs=ntfs label=$n"); $dp.Add("assign letter=$L") }
 }
 $dp.Add('create partition primary'); $dp.Add('format quick fs=ntfs label=Recovery')
 if($uefi){ $dp.Add('set id=de94bba4-06d1-4d40-a16a-bfd50179d6ac'); $dp.Add('gpt attributes=0x8000000000000001') }

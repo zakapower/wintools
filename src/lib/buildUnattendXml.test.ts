@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { defaultConfig } from './defaults.ts'
 import { buildUnattendXml, validateConfig } from './buildUnattendXml.ts'
+import { buildPeInstallScript } from './peInstallScript.ts'
 
 const sampleConfig = {
   ...defaultConfig,
@@ -55,37 +56,39 @@ test('buildUnattendXml includes computer name and wipe disk', () => {
   const xml = buildUnattendXml({ ...sampleConfig, diskMode: 'wipe0' })
   assert.match(xml, /<ComputerName>DESKTOP-PC<\/ComputerName>/)
   assert.match(xml, /<Name>User<\/Name>/)
-  assert.match(xml, /Windows 11 Pro/)
-  assert.match(xml, /<Description>WinTools disk<\/Description>/)
-  const disk = decodeEncodedCommands(xml).find((s) =>
-    s.includes('WINTOOLS_VOLUMES'),
-  )
-  assert.ok(disk, 'expected PE disk script')
+  assert.match(xml, /<Description>WinTools PE install<\/Description>/)
+  assert.doesNotMatch(xml, /<ImageInstall>/)
+  assert.match(xml, /<ProductKey>VK7JG-NPHTM-C97JM-9MPGT-3V66T<\/ProductKey>/)
+  const disk = buildPeInstallScript({ ...sampleConfig, diskMode: 'wipe0' })
+  assert.match(disk, /WINTOOLS_PE_INSTALL=1/)
   assert.match(disk, /WINTOOLS_VOLUMES=C\|Windows\|150;D\|Data\|/)
-  assert.match(disk, /\[int\]\$size \* 1024/)
-  assert.match(disk, /diskpart/i)
+  assert.match(disk, /dism\.exe/)
+  assert.match(disk, /bcdboot\.exe/)
+  assert.match(disk, /Panther\\unattend\.xml/)
+  assert.match(disk, /wpeutil\.exe/)
+  assert.match(disk, /PeLetter/)
 })
 
 test('wipe disk targets first internal disk, not USB Disk 0', () => {
-  const xml = buildUnattendXml({ ...sampleConfig, diskMode: 'wipe0' })
-  assert.doesNotMatch(xml, /<DiskID>0<\/DiskID>/)
-  assert.doesNotMatch(xml, /<WillWipeDisk>/)
-  assert.match(xml, /<InstallToAvailablePartition>true<\/InstallToAvailablePartition>/)
-  const disk = decodeEncodedCommands(xml).find((s) =>
-    s.includes('WINTOOLS_VOLUMES'),
-  )
-  assert.ok(disk)
+  const disk = buildPeInstallScript({ ...sampleConfig, diskMode: 'wipe0' })
+  assert.doesNotMatch(disk, /select disk 0/)
   assert.match(disk, /InterfaceType/)
   assert.match(disk, /USB/)
   assert.match(disk, /PEFirmwareType/)
+  assert.match(disk, /PeLetter/)
 })
 
-test('product key is omitted when none and never shows UI when custom', () => {
-  const none = buildUnattendXml(sampleConfig)
-  assert.doesNotMatch(none, /<ProductKey>/)
-  assert.doesNotMatch(none, /<Key>\s*<\/Key>/)
+test('product key uses generic GVLK when none and custom key when set', () => {
+  const none = buildUnattendXml({ ...sampleConfig, diskMode: 'interactive' })
+  assert.match(
+    none,
+    /<ProductKey>\s*<Key>VK7JG-NPHTM-C97JM-9MPGT-3V66T<\/Key>\s*<WillShowUI>OnError<\/WillShowUI>\s*<\/ProductKey>/,
+  )
+  const wipe = buildUnattendXml({ ...sampleConfig, diskMode: 'wipe0' })
+  assert.match(wipe, /<ProductKey>VK7JG-NPHTM-C97JM-9MPGT-3V66T<\/ProductKey>/)
   const custom = buildUnattendXml({
     ...sampleConfig,
+    diskMode: 'interactive',
     productKeyMode: 'custom',
     productKeyCustom: 'AAAAA-BBBBB-CCCCC-DDDDD-EEEEE',
   })
@@ -93,22 +96,32 @@ test('product key is omitted when none and never shows UI when custom', () => {
     custom,
     /<ProductKey>\s*<Key>AAAAA-BBBBB-CCCCC-DDDDD-EEEEE<\/Key>\s*<WillShowUI>Never<\/WillShowUI>\s*<\/ProductKey>/,
   )
-  assert.doesNotMatch(custom, /VK7JG-NPHTM-C97JM-9MPGT-3V66T/)
+})
+
+test('interactive disk hides edition picker when image is preset', () => {
+  const xml = buildUnattendXml({ ...sampleConfig, diskMode: 'interactive' })
+  assert.match(xml, /<WillShowUI>Never<\/WillShowUI>/)
+  assert.doesNotMatch(xml, /<WillShowUI>Always<\/WillShowUI>/)
+  assert.doesNotMatch(xml, /<InstallToAvailablePartition>/)
 })
 
 test('windowsPE disables DynamicUpdate and bypasses TPM checks', () => {
-  const xml = buildUnattendXml(sampleConfig)
+  const xml = buildUnattendXml({ ...sampleConfig, diskMode: 'interactive' })
   assert.match(xml, /<Enable>false<\/Enable>/)
   assert.match(xml, /<DynamicUpdate>/)
   assert.match(xml, /BypassTPMCheck/)
   assert.match(xml, /BypassSecureBootCheck/)
+  const wipe = buildUnattendXml({ ...sampleConfig, diskMode: 'wipe0' })
+  assert.match(wipe, /BypassTPMCheck/)
+  assert.doesNotMatch(wipe, /<DynamicUpdate>/)
 })
 
-test('OOBE does not use deprecated SkipMachineOOBE', () => {
+test('OOBE hides local account screen and skips deprecated flags', () => {
   const xml = buildUnattendXml(sampleConfig)
   assert.doesNotMatch(xml, /SkipMachineOOBE/)
   assert.doesNotMatch(xml, /SkipUserOOBE/)
   assert.match(xml, /<HideOnlineAccountScreens>true<\/HideOnlineAccountScreens>/)
+  assert.match(xml, /<HideLocalAccountScreen>true<\/HideLocalAccountScreen>/)
 })
 
 test('wipe disk validates empty volume size', () => {
@@ -124,29 +137,30 @@ test('wipe disk validates empty volume size', () => {
 })
 
 test('interactive disk omits DiskConfiguration', () => {
-  const xml = buildUnattendXml(sampleConfig)
+  const xml = buildUnattendXml({ ...sampleConfig, diskMode: 'interactive' })
   assert.doesNotMatch(xml, /WillWipeDisk/)
-  assert.doesNotMatch(xml, /<Description>WinTools disk<\/Description>/)
+  assert.doesNotMatch(xml, /<Description>WinTools PE install<\/Description>/)
   assert.doesNotMatch(xml, /InstallToAvailablePartition/)
-  assert.match(xml, /<WillShowUI>Always<\/WillShowUI>/)
+  assert.match(xml, /<ImageInstall>/)
+  assert.match(xml, /<WillShowUI>Never<\/WillShowUI>/)
 })
 
-test('wipe PE disk command stays under Windows Path limit', () => {
+test('wipe PE install RunSynchronous paths stay under Windows limit', () => {
   const xml = buildUnattendXml({ ...sampleConfig, diskMode: 'wipe0' })
-  const m =
-    /<Description>WinTools disk<\/Description>\s*<Path>([^<]*)<\/Path>/.exec(
-      xml,
-    )
-  assert.ok(m, 'expected WinTools disk Path')
-  const path = m[1]
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-  assert.ok(
-    path.length < 8000,
-    `RunSynchronous Path is ${path.length} chars (limit ~8191)`,
+  const paths = [...xml.matchAll(/<Path>([^<]*)<\/Path>/g)].map((m) =>
+    m[1]
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>'),
   )
+  assert.ok(paths.some((p) => p.includes('X:\\wt.ps1')))
+  for (const path of paths) {
+    assert.ok(
+      path.length < 8000,
+      `RunSynchronous Path is ${path.length} chars (limit ~8191)`,
+    )
+  }
 })
 
 test('extra user and Users group land in XML', () => {
@@ -167,6 +181,11 @@ test('extra user and Users group land in XML', () => {
     extraUserName: 'User',
   })
   assert.ok(errors.some((e) => e.targetId === 'field-extra-user-name'))
+})
+
+test('Enterprise edition is rejected for standard ISO', () => {
+  const errors = validateConfig({ ...sampleConfig, edition: 'Enterprise' })
+  assert.ok(errors.some((e) => e.targetId === 'field-edition'))
 })
 
 test('tweaks and vcredist appear in FirstLogon script', () => {
@@ -195,4 +214,7 @@ test('tweaks and vcredist appear in FirstLogon script', () => {
   assert.match(script, /PreventDeviceEncryption/)
   assert.match(script, /Microsoft\.VCRedist\.2015\+\.x64/)
   assert.match(script, /Microsoft\.VCRedist\.2015\+\.x86/)
+  assert.match(script, /wintools-winget\.ps1/)
+  assert.match(script, /Start-Process powershell\.exe -WindowStyle Hidden/)
+  assert.match(script, /Start-Process explorer\.exe/)
 })

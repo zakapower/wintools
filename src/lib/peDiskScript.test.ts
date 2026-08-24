@@ -34,6 +34,7 @@ test('buildPeDiskScript selects a non-USB disk and runs diskpart', () => {
   assert.match(script, /USB/)
   assert.match(script, /PEFirmwareType/)
   assert.match(script, /diskpart/)
+  assert.match(script, /assign letter=\$L/)
   assert.match(script, /\[int\]\$size \* 1024/)
   assert.doesNotMatch(script, /select disk 0/)
 })

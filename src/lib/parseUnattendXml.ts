@@ -57,6 +57,34 @@ function attr(attrs: string, name: string): string {
   return (m?.[1] ?? '').trim()
 }
 
+function decodePeInstallScriptFromXml(xml: string): string | null {
+  const chunks: string[] = []
+  for (const cmd of allTags(xml, 'RunSynchronousCommand')) {
+    const desc = textOf(cmd.inner, 'Description')
+    if (!/^WinTools PE stage \d+$/.test(desc)) continue
+    const path = textOf(cmd.inner, 'Path')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+    const m = /\(echo ([A-Za-z0-9+/=]+)\)/.exec(path)
+    if (m?.[1]) chunks.push(m[1])
+  }
+  if (!chunks.length) return null
+  try {
+    const b64 = chunks.join('')
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(b64, 'base64').toString('utf16le')
+    }
+    const bin = atob(b64)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    return new TextDecoder('utf-16le').decode(bytes)
+  } catch {
+    return null
+  }
+}
+
 function decodeEncodedCommand(cmd: string): string | null {
   const m = cmd.match(/-EncodedCommand\s+([A-Za-z0-9+/=]+)/i)
   if (!m) return null
@@ -249,25 +277,33 @@ export function parseUnattendXml(
     cfg.productKeyCustom = productKey
   }
 
-  const peDiskCmd = allTags(trimmed, 'RunSynchronousCommand').find((cmd) =>
-    /WinTools disk/i.test(textOf(cmd.inner, 'Description')),
-  )
-  const peDiskScript = peDiskCmd
-    ? decodeEncodedCommand(
-        textOf(peDiskCmd.inner, 'Path')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"'),
-      )
-    : null
+  const peStage = /WinTools PE stage/i.test(trimmed)
+  const peDiskCmd = allTags(trimmed, 'RunSynchronousCommand').find((cmd) => {
+    const desc = textOf(cmd.inner, 'Description')
+    return /WinTools PE install|WinTools PE stage|WinTools disk/i.test(desc)
+  })
+  const peDiskScript = peStage
+    ? decodePeInstallScriptFromXml(trimmed)
+    : peDiskCmd
+      ? decodeEncodedCommand(
+          textOf(peDiskCmd.inner, 'Path')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"'),
+        )
+      : null
   if (peDiskScript && /WINTOOLS_VOLUMES=/.test(peDiskScript)) {
     cfg.diskMode = 'wipe0'
     const marker = /WINTOOLS_VOLUMES=([^\r\n]+)/.exec(peDiskScript)
     const volumes = marker ? parseVolumesMarker(marker[1]) : null
     if (volumes) cfg.volumes = volumes
+    const editionMatch = /\$ename='([^']+)'/.exec(peDiskScript)
+    if (editionMatch) {
+      const mapped = mapEdition(editionMatch[1])
+      if (mapped) cfg.edition = mapped
+    }
   } else if (/<(?:[\w.-]+:)?WillWipeDisk\b/i.test(trimmed)) {
-    cfg.diskMode = 'wipe0'
     const creates = allTags(trimmed, 'CreatePartition')
     const modifies = allTags(trimmed, 'ModifyPartition')
     const byPartId = new Map(

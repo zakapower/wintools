@@ -10,7 +10,7 @@ import {
   MAX_VOLUMES,
   MIN_WINDOWS_GB,
 } from './diskVolumes.ts'
-import { buildPeDiskScript } from './peDiskScript.ts'
+import { buildPeInstallRunCommands } from './peInstallScript.ts'
 
 const EDITION_NAME: Record<UnattendConfig['edition'], string> = {
   Pro: 'Windows 11 Pro',
@@ -42,42 +42,70 @@ function productKeyValue(cfg: UnattendConfig): string {
   return cfg.productKeyCustom.trim()
 }
 
+const GENERIC_PRODUCT_KEYS: Record<UnattendConfig['edition'], string> = {
+  Pro: 'VK7JG-NPHTM-C97JM-9MPGT-3V66T',
+  Home: 'YTMG3-N6DKC-DKB77-7M9GH-8HVX7',
+  Enterprise: 'XGVPP-NMH47-7TTHJ-W3FW7-8HV2C',
+}
+
 function productKeyUserDataXml(cfg: UnattendConfig): string {
-  const key = productKeyValue(cfg)
-  // Empty <Key> is invalid per Microsoft unattend docs and fails Setup
-  // immediately when WillShowUI is Never. Omit the whole block for "no key".
-  if (!key) return ''
-  return `<ProductKey>
+  if (cfg.productKeyMode === 'custom') {
+    const key = productKeyValue(cfg)
+    if (!key) return ''
+    return `<ProductKey>
           <Key>${esc(key)}</Key>
           <WillShowUI>Never</WillShowUI>
         </ProductKey>`
+  }
+  const genericKey = GENERIC_PRODUCT_KEYS[cfg.edition]
+  return `<ProductKey>
+          <Key>${genericKey}</Key>
+          <WillShowUI>OnError</WillShowUI>
+        </ProductKey>`
 }
 
-function imageInstallXml(cfg: UnattendConfig): string {
+function productKeySpecializeXml(cfg: UnattendConfig): string {
+  if (cfg.productKeyMode === 'custom') {
+    const key = productKeyValue(cfg)
+    if (!key) return ''
+    return `<ProductKey>${esc(key)}</ProductKey>`
+  }
+  return `<ProductKey>${GENERIC_PRODUCT_KEYS[cfg.edition]}</ProductKey>`
+}
+
+function imageInstallXml(_cfg: UnattendConfig): string {
   const from = `
             <InstallFrom>
               <MetaData wcm:action="add">
                 <Key>/IMAGE/NAME</Key>
-                <Value>${esc(EDITION_NAME[cfg.edition])}</Value>
+                <Value>${esc(EDITION_NAME[_cfg.edition])}</Value>
               </MetaData>
             </InstallFrom>`
-  if (cfg.diskMode === 'interactive') {
-    return `
-      <ImageInstall>
-        <OSImage>
-          ${from}
-          <WillShowUI>Always</WillShowUI>
-        </OSImage>
-      </ImageInstall>`
-  }
   return `
       <ImageInstall>
         <OSImage>
           ${from}
-          <InstallToAvailablePartition>true</InstallToAvailablePartition>
-          <WillShowUI>OnError</WillShowUI>
+          <WillShowUI>Never</WillShowUI>
         </OSImage>
       </ImageInstall>`
+}
+
+function windowsPeSetupBody(cfg: UnattendConfig, user: string): string {
+  if (cfg.diskMode === 'wipe0') {
+    return `${runSynchronousXml(cfg)}`
+  }
+  return `${imageInstallXml(cfg)}
+      <DynamicUpdate>
+        <Enable>false</Enable>
+        <WillShowUI>Never</WillShowUI>
+      </DynamicUpdate>
+      ${runSynchronousXml(cfg)}
+      <UserData>
+        <AcceptEula>true</AcceptEula>
+        <FullName>${user}</FullName>
+        <Organization>WinTools</Organization>
+        ${productKeyUserDataXml(cfg)}
+      </UserData>`
 }
 
 function runSynchronousXml(cfg: UnattendConfig): string {
@@ -102,10 +130,7 @@ function runSynchronousXml(cfg: UnattendConfig): string {
     })
   }
   if (cfg.diskMode === 'wipe0') {
-    cmds.push({
-      desc: 'WinTools disk',
-      path: `powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand ${utf16LeToBase64(buildPeDiskScript(cfg))}`,
-    })
+    cmds.push(...buildPeInstallRunCommands(cfg))
   }
   return `
       <RunSynchronous>
@@ -278,14 +303,25 @@ function bloatScript(cfg: UnattendConfig): string {
     const drive = (cfg.installDrive || 'C').toUpperCase().slice(0, 1)
     const locationArg =
       drive && drive !== 'C' ? ` --location "${drive}:\\Apps"` : ''
-    lines.push(
+    const wingetLines = [
+      '$ErrorActionPreference = "SilentlyContinue"',
       '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")',
       ...wingetIds.map(
         (id) =>
           `winget install -e --id ${id} --accept-package-agreements --accept-source-agreements --disable-interactivity${locationArg}`,
       ),
+    ]
+    const wingetLiteral = wingetLines
+      .map((l) => `'${l.replace(/'/g, "''")}'`)
+      .join(',')
+    lines.push(
+      `$wt=Join-Path $env:TEMP 'wintools-winget.ps1'; Set-Content -Path $wt -Encoding UTF8 -Value @(${wingetLiteral}); Start-Process powershell.exe -WindowStyle Hidden -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$wt)`,
     )
   }
+
+  lines.push(
+    'Get-Process explorer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Process explorer.exe',
+  )
 
   // Escape for XML via EncodedCommand - UTF-16LE base64 (works in Node and browser)
   const ps = lines.join('; ')
@@ -545,6 +581,15 @@ export function validateConfig(
       targetId: 'field-product-key',
     })
   }
+  if (cfg.edition === 'Enterprise') {
+    errors.push({
+      message: t(
+        'Enterprise нет в обычном ISO Windows 11. Выберите Pro или Home, либо используйте ISO Enterprise.',
+        'Enterprise is not in a standard Windows 11 ISO. Pick Pro or Home, or use an Enterprise ISO.',
+      ),
+      targetId: 'field-edition',
+    })
+  }
   if (!cfg.keyboards.length) {
     errors.push({
       message: t('Нужна хотя бы одна раскладка', 'At least one keyboard layout'),
@@ -564,7 +609,9 @@ export function buildUnattendXml(cfg: UnattendConfig): string {
       ? '<ProtectYourPC>3</ProtectYourPC>'
       : '<ProtectYourPC>1</ProtectYourPC>'
 
-  const autoLogon = `
+  const autoLogon =
+    cfg.autoLogon !== false
+      ? `
       <AutoLogon>
         <Enabled>true</Enabled>
         <Username>${user}</Username>
@@ -574,6 +621,7 @@ export function buildUnattendXml(cfg: UnattendConfig): string {
         </Password>
         <LogonCount>1</LogonCount>
       </AutoLogon>`
+      : ''
 
   const firstLogon = `
       <FirstLogonCommands>
@@ -597,6 +645,7 @@ export function buildUnattendXml(cfg: UnattendConfig): string {
         <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
         <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
         <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <HideLocalAccountScreen>true</HideLocalAccountScreen>
         ${protect}
       </OOBE>
       <UserAccounts>
@@ -634,24 +683,15 @@ export function buildUnattendXml(cfg: UnattendConfig): string {
       <UserLocale>${lang}</UserLocale>
     </component>
     <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
-      ${imageInstallXml(cfg)}
-      <DynamicUpdate>
-        <Enable>false</Enable>
-        <WillShowUI>Never</WillShowUI>
-      </DynamicUpdate>
-      ${runSynchronousXml(cfg)}
-      <UserData>
-        <AcceptEula>true</AcceptEula>
-        <FullName>${user}</FullName>
-        <Organization>WinTools</Organization>
-        ${productKeyUserDataXml(cfg)}
-      </UserData>
+      ${windowsPeSetupBody(cfg, user)}
     </component>
   </settings>
   <settings pass="specialize">
     <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
       <ComputerName>${esc(cfg.computerName)}</ComputerName>
       <TimeZone>${esc(cfg.timezone)}</TimeZone>
+      <NetworkLocation>Home</NetworkLocation>
+      ${productKeySpecializeXml(cfg)}
     </component>
     <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
       <RunSynchronous>
