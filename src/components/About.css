@@ -45,13 +45,17 @@
   max-width: 36rem;
 }
 
-.about__block {
+.about-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--about-radius);
+  background: var(--surface);
 }
 
-.about__block h2,
+.about-panel h2,
 .about-card h2 {
   margin: 0;
   font-family: var(--font-display);
@@ -76,14 +80,75 @@
   gap: 0.7rem;
 }
 
-.about-tile,
+.about-panel .about-tiles,
+.about-panel .about-steps,
+.about-panel .about-alerts {
+  gap: 0;
+}
+
+.about-panel .about-tile,
+.about-panel .about-steps li,
+.about-panel .about-alert {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.about-panel .about-tile:first-child,
+.about-panel .about-steps li:first-child,
+.about-panel .about-alert:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.about-panel .about-tile:last-child,
+.about-panel .about-steps li:last-child,
+.about-panel .about-alert:last-child {
+  padding-bottom: 0;
+}
+
+.about-panel .about-tiles {
+  display: flex;
+  flex-direction: column;
+}
+
+.about-panel .about-tile {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.about-panel .about-steps li,
+.about-panel .about-alert {
+  align-items: center;
+}
+
+.about-panel .about-alert--critical {
+  border-top-color: color-mix(in srgb, #dc2626 22%, var(--line));
+  background: transparent;
+}
+
+:root[data-theme='dark'] .about-panel .about-alert--critical {
+  border-top-color: color-mix(in srgb, #f87171 26%, var(--line));
+  background: transparent;
+}
+
 .about-card,
-.about-steps li,
-.about-alert,
 .about-cta {
   border: 1px solid var(--line);
   border-radius: var(--about-radius);
   background: var(--surface);
+}
+
+.about-tile,
+.about-steps li,
+.about-alert {
+  border: 1px solid var(--line);
+  border-radius: calc(var(--about-radius) - 0.1rem);
+  background: color-mix(in srgb, var(--wash) 45%, var(--surface));
 }
 
 .about-tile {
@@ -328,13 +393,28 @@
     grid-template-columns: 1fr;
   }
 
+  .about-panel {
+    padding: 0.95rem 0.95rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .about-panel .about-tile,
   .about-card,
   .about-steps li,
   .about-alert,
   .about-cta {
     grid-template-columns: 2rem minmax(0, 1fr);
     gap: 0.75rem;
+  }
+
+  .about-card,
+  .about-cta {
     padding: 0.95rem 0.95rem 1rem;
+  }
+
+  .about-panel .about-steps li,
+  .about-panel .about-alert {
+    padding: 0.75rem 0;
   }
 
   .about-tile__icon,

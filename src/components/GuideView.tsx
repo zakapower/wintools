@@ -29,7 +29,7 @@ export function GuideView() {
         </p>
       </header>
 
-      <section className="about__block">
+      <section className="about-panel">
         <h2>{t('Что нужно', 'What you need')}</h2>
         <ul className="about-tiles">
           <li className="about-tile">
@@ -74,15 +74,15 @@ export function GuideView() {
               <Flame strokeWidth={2} />
             </span>
             <p>
-              {t('Программа', 'The')}{' '}
+              {t('Программа ', 'The ')}
               <a
                 href="https://rufus.ie/"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Rufus
-              </a>
-              {t(' — запишет образ на флешку.', ' app — writes the image to the USB.')}
+              </a>{' '}
+              {t('запишет образ на флешку.', 'app writes the image to the USB.')}
             </p>
           </li>
           <li className="about-tile">
@@ -97,7 +97,7 @@ export function GuideView() {
         </ul>
       </section>
 
-      <section className="about__block">
+      <section className="about-panel">
         <h2>{t('Шаги', 'Steps')}</h2>
         <ol className="about-steps">
           <li>
@@ -140,7 +140,7 @@ export function GuideView() {
             </span>
             <p>
               {t(
-                'Вставьте флешку, включите ПК и сразу жмите F12 (иногда Esc, F10 или F2). Выберите флешку. Если есть UEFI и Legacy — только UEFI.',
+                'Вставьте флешку, включите ПК и сразу жмите F12 (иногда Esc, F10 или F2). Выберите флешку. Если есть UEFI и Legacy, выбирайте только UEFI.',
                 'Plug in the USB, power on, and press F12 right away (sometimes Esc, F10, or F2). Pick the USB. If you see UEFI and Legacy, choose UEFI.',
               )}
             </p>
@@ -159,7 +159,7 @@ export function GuideView() {
         </ol>
       </section>
 
-      <section className="about__block">
+      <section className="about-panel">
         <h2>{t('Важно', 'Important')}</h2>
         <ul className="about-alerts">
           <li className="about-alert about-alert--critical">
@@ -171,7 +171,7 @@ export function GuideView() {
                 <>
                   Авторазметка{' '}
                   <span className="mark-critical">сотрёт диск компьютера</span>, не
-                  флешку. Второй диск нельзя трогать — разметьте сами в установщике.
+                  флешку. Второй диск нельзя трогать, разметьте сами в установщике.
                 </>
               ) : (
                 <>

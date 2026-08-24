@@ -76,7 +76,7 @@ export const INSTALL_APP_CATALOG: InstallAppEntry[] = [
   { id: 'windhawk', labelRu: 'Windhawk', labelEn: 'Windhawk', wingetId: 'RamenSoftware.Windhawk' },
   { id: 'office', labelRu: 'Microsoft 365 / Office', labelEn: 'Microsoft 365 / Office', wingetId: 'Microsoft.Office' },
   { id: 'dotnet8', labelRu: '.NET 8 Desktop Runtime', labelEn: '.NET 8 Desktop Runtime', wingetId: 'Microsoft.DotNet.DesktopRuntime.8' },
-  { id: 'vcredist', labelRu: 'Visual C++ 2015–2022', labelEn: 'Visual C++ 2015–2022', wingetId: 'Microsoft.VCRedist.2015+.x64' },
+  { id: 'vcredist', labelRu: 'Visual C++ 2015-2022', labelEn: 'Visual C++ 2015-2022', wingetId: 'Microsoft.VCRedist.2015+.x64' },
 ]
 
 export const VCREDIST_X86_WINGET_ID = 'Microsoft.VCRedist.2015+.x86'

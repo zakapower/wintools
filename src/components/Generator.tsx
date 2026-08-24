@@ -564,7 +564,7 @@ export function Generator() {
           {cfg.productKeyMode === 'none' && (
             <p className="field__hint">
               {t(
-                'Ключ в файл не пишется. Setup возьмёт OEM/цифровую лицензию или позволит пропустить экран. Редакция — из ISO.',
+                'Ключ в файл не пишется. Setup возьмёт OEM/цифровую лицензию или позволит пропустить экран. Редакция из ISO.',
                 'No key is written to the file. Setup uses the OEM/digital license or lets you skip the screen. Edition comes from the ISO.',
               )}
             </p>
@@ -887,7 +887,7 @@ export function Generator() {
                   />
                   <span className="choice__mark" aria-hidden />
                   <span className="choice__text">
-                    {t('Второй пользователь — администратор', 'Second user is administrator')}
+                    {t('Второй пользователь, администратор', 'Second user, administrator')}
                   </span>
                 </label>
               </div>
@@ -1021,7 +1021,7 @@ export function Generator() {
 
           <div className="tweak-group">
             <h3 className="tweak-group__title">
-              {t('Вид и Windows', 'Look & Windows')}
+              {t('Персонализация', 'Personalization')}
             </h3>
             <div className="choices choices--tweaks">
               <label className="choice">
@@ -1051,237 +1051,6 @@ export function Generator() {
                   hint={t(
                     'Меню как в Windows 10',
                     'Right-click menu like Windows 10',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.disableCopilot}
-                  onChange={(e) => patch('disableCopilot', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Выключить Copilot', 'Turn off Copilot')}
-                  hint={t(
-                    'Убирает кнопку Copilot',
-                    'Removes the Copilot button',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.disableRecall}
-                  onChange={(e) => patch('disableRecall', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Выключить Recall', 'Turn off Recall')}
-                  hint={t(
-                    'Без снимков экрана для поиска',
-                    'No screen snapshots for search',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.disableStartAds}
-                  onChange={(e) => patch('disableStartAds', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Убрать рекламу в Пуске', 'Remove Start ads')}
-                  hint={t(
-                    'Меньше промо в меню Пуск',
-                    'Fewer promos in Start',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.highPerformance}
-                  onChange={(e) => patch('highPerformance', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t(
-                    'План «высокая производительность»',
-                    'High performance power plan',
-                  )}
-                  hint={t(
-                    'Максимум скорости, больше расход',
-                    'Max speed, higher power use',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.disableBitLocker}
-                  onChange={(e) => patch('disableBitLocker', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Выключить BitLocker', 'Turn off BitLocker')}
-                  hint={t(
-                    'Без шифрования диска при установке',
-                    'No drive encryption during setup',
-                  )}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="tweak-group">
-            <h3 className="tweak-group__title">
-              {t('Приватность и предложения', 'Privacy & suggestions')}
-            </h3>
-            <div className="choices choices--tweaks">
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.disableWidgets}
-                  onChange={(e) => patch('disableWidgets', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Отключить виджеты / новости', 'Disable widgets / news')}
-                  hint={t(
-                    'Без ленты новостей и виджетов',
-                    'No news feed or widgets',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.disableConsumerFeatures}
-                  onChange={(e) =>
-                    patch('disableConsumerFeatures', e.target.checked)
-                  }
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t(
-                    'Меньше предложений приложений',
-                    'Fewer app suggestions',
-                  )}
-                  hint={t(
-                    'Меньше рекламы Store',
-                    'Fewer Store ads',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.disableTelemetry}
-                  onChange={(e) => patch('disableTelemetry', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Ограничить телеметрию', 'Limit telemetry')}
-                  hint={t(
-                    'Меньше данных Microsoft',
-                    'Less data to Microsoft',
-                  )}
-                />
-              </label>
-            </div>
-            <fieldset className="field">
-              <legend className="field__label">
-                {t('Конфиденциальность (Express)', 'Privacy (Express)')}
-              </legend>
-              <div className="choices choices--tweaks">
-                <label className="choice">
-                  <input
-                    type="radio"
-                    name="expressPrivacy"
-                    checked={cfg.expressPrivacy === 'default'}
-                    onChange={() => patch('expressPrivacy', 'default')}
-                  />
-                  <span className="choice__mark choice__mark--radio" aria-hidden />
-                  <ChoiceCopy
-                    title={t('По умолчанию Windows', 'Windows defaults')}
-                    hint={t(
-                      'Стандартные параметры Windows',
-                      'Standard Windows settings',
-                    )}
-                  />
-                </label>
-                <label className="choice">
-                  <input
-                    type="radio"
-                    name="expressPrivacy"
-                    checked={cfg.expressPrivacy === 'disable-all'}
-                    onChange={() => patch('expressPrivacy', 'disable-all')}
-                  />
-                  <span className="choice__mark choice__mark--radio" aria-hidden />
-                  <ChoiceCopy
-                    title={t(
-                      'Минимум данных Microsoft',
-                      'Minimize Microsoft data',
-                    )}
-                    hint={t(
-                      'Отключает Express в OOBE',
-                      'Turns off Express privacy in OOBE',
-                    )}
-                  />
-                </label>
-              </div>
-            </fieldset>
-          </div>
-
-          <div className="tweak-group">
-            <h3 className="tweak-group__title">
-              {t('Проводник', 'File Explorer')}
-            </h3>
-            <div className="choices choices--tweaks">
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.showFileExtensions}
-                  onChange={(e) => patch('showFileExtensions', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Показывать расширения файлов', 'Show file extensions')}
-                  hint={t(
-                    'Всегда видно .exe, .pdf и др.',
-                    'Always shows .exe, .pdf, etc.',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.showHiddenFiles}
-                  onChange={(e) => patch('showHiddenFiles', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Показывать скрытые файлы', 'Show hidden files')}
-                  hint={t(
-                    'Показывает скрытые файлы и папки',
-                    'Shows hidden files and folders',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.enableLongPaths}
-                  onChange={(e) => patch('enableLongPaths', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Длинные пути (>260)', 'Long paths (>260)')}
-                  hint={t(
-                    'Пути длиннее 260 символов',
-                    'Paths longer than 260 chars',
                   )}
                 />
               </label>
@@ -1409,9 +1178,263 @@ export function Generator() {
 
           <div className="tweak-group">
             <h3 className="tweak-group__title">
+              {t('Windows', 'Windows')}
+            </h3>
+            <div className="choices choices--tweaks">
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.disableCopilot}
+                  onChange={(e) => patch('disableCopilot', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Выключить Copilot', 'Turn off Copilot')}
+                  hint={t(
+                    'Убирает кнопку Copilot',
+                    'Removes the Copilot button',
+                  )}
+                />
+              </label>
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.disableRecall}
+                  onChange={(e) => patch('disableRecall', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Выключить Recall', 'Turn off Recall')}
+                  hint={t(
+                    'Без снимков экрана для поиска',
+                    'No screen snapshots for search',
+                  )}
+                />
+              </label>
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.disableStartAds}
+                  onChange={(e) => patch('disableStartAds', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Убрать рекламу в Пуске', 'Remove Start ads')}
+                  hint={t(
+                    'Меньше промо в меню Пуск',
+                    'Fewer promos in Start',
+                  )}
+                />
+              </label>
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.disableWidgets}
+                  onChange={(e) => patch('disableWidgets', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Отключить виджеты / новости', 'Disable widgets / news')}
+                  hint={t(
+                    'Без ленты новостей и виджетов',
+                    'No news feed or widgets',
+                  )}
+                />
+              </label>
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.disableConsumerFeatures}
+                  onChange={(e) =>
+                    patch('disableConsumerFeatures', e.target.checked)
+                  }
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t(
+                    'Меньше предложений приложений',
+                    'Fewer app suggestions',
+                  )}
+                  hint={t(
+                    'Меньше рекламы Store',
+                    'Fewer Store ads',
+                  )}
+                />
+              </label>
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.disableOneDrive}
+                  onChange={(e) => patch('disableOneDrive', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Удалить OneDrive', 'Uninstall OneDrive')}
+                  hint={t(
+                    'Удаляет клиент после установки',
+                    'Removes the client after setup',
+                  )}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="tweak-group">
+            <h3 className="tweak-group__title">
+              {t('Конфиденциальность', 'Privacy')}
+            </h3>
+            <div className="choices choices--tweaks">
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.disableTelemetry}
+                  onChange={(e) => patch('disableTelemetry', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Ограничить телеметрию', 'Limit telemetry')}
+                  hint={t(
+                    'Меньше данных Microsoft',
+                    'Less data to Microsoft',
+                  )}
+                />
+              </label>
+            </div>
+            <fieldset className="field">
+              <legend className="field__label">
+                {t('Конфиденциальность (Express)', 'Privacy (Express)')}
+              </legend>
+              <div className="choices choices--tweaks">
+                <label className="choice">
+                  <input
+                    type="radio"
+                    name="expressPrivacy"
+                    checked={cfg.expressPrivacy === 'default'}
+                    onChange={() => patch('expressPrivacy', 'default')}
+                  />
+                  <span className="choice__mark choice__mark--radio" aria-hidden />
+                  <ChoiceCopy
+                    title={t('По умолчанию Windows', 'Windows defaults')}
+                    hint={t(
+                      'Стандартные параметры Windows',
+                      'Standard Windows settings',
+                    )}
+                  />
+                </label>
+                <label className="choice">
+                  <input
+                    type="radio"
+                    name="expressPrivacy"
+                    checked={cfg.expressPrivacy === 'disable-all'}
+                    onChange={() => patch('expressPrivacy', 'disable-all')}
+                  />
+                  <span className="choice__mark choice__mark--radio" aria-hidden />
+                  <ChoiceCopy
+                    title={t(
+                      'Минимум данных Microsoft',
+                      'Minimize Microsoft data',
+                    )}
+                    hint={t(
+                      'Отключает Express в OOBE',
+                      'Turns off Express privacy in OOBE',
+                    )}
+                  />
+                </label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div className="tweak-group">
+            <h3 className="tweak-group__title">
+              {t('Проводник', 'File Explorer')}
+            </h3>
+            <div className="choices choices--tweaks">
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.showFileExtensions}
+                  onChange={(e) => patch('showFileExtensions', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Показывать расширения файлов', 'Show file extensions')}
+                  hint={t(
+                    'Всегда видно .exe, .pdf и др.',
+                    'Always shows .exe, .pdf, etc.',
+                  )}
+                />
+              </label>
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.showHiddenFiles}
+                  onChange={(e) => patch('showHiddenFiles', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Показывать скрытые файлы', 'Show hidden files')}
+                  hint={t(
+                    'Показывает скрытые файлы и папки',
+                    'Shows hidden files and folders',
+                  )}
+                />
+              </label>
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.enableLongPaths}
+                  onChange={(e) => patch('enableLongPaths', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Длинные пути (>260)', 'Long paths (>260)')}
+                  hint={t(
+                    'Пути длиннее 260 символов',
+                    'Paths longer than 260 chars',
+                  )}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="tweak-group">
+            <h3 className="tweak-group__title">
               {t('Система', 'System')}
             </h3>
             <div className="choices choices--tweaks">
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.highPerformance}
+                  onChange={(e) => patch('highPerformance', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t(
+                    'План «высокая производительность»',
+                    'High performance power plan',
+                  )}
+                  hint={t(
+                    'Максимум скорости, больше расход',
+                    'Max speed, higher power use',
+                  )}
+                />
+              </label>
+              <label className="choice">
+                <input
+                  type="checkbox"
+                  checked={cfg.disableBitLocker}
+                  onChange={(e) => patch('disableBitLocker', e.target.checked)}
+                />
+                <span className="choice__mark" aria-hidden />
+                <ChoiceCopy
+                  title={t('Выключить BitLocker', 'Turn off BitLocker')}
+                  hint={t(
+                    'Без шифрования диска при установке',
+                    'No drive encryption during setup',
+                  )}
+                />
+              </label>
               <label className="choice">
                 <input
                   type="checkbox"
@@ -1439,21 +1462,6 @@ export function Generator() {
                   hint={t(
                     'NumLock на экране входа',
                     'NumLock on at sign-in',
-                  )}
-                />
-              </label>
-              <label className="choice">
-                <input
-                  type="checkbox"
-                  checked={cfg.disableOneDrive}
-                  onChange={(e) => patch('disableOneDrive', e.target.checked)}
-                />
-                <span className="choice__mark" aria-hidden />
-                <ChoiceCopy
-                  title={t('Удалить OneDrive', 'Uninstall OneDrive')}
-                  hint={t(
-                    'Удаляет клиент после установки',
-                    'Removes the client after setup',
                   )}
                 />
               </label>
