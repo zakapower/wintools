@@ -82,7 +82,6 @@ export function Generator() {
   const editionOptions = [
     { value: 'Pro', label: 'Windows 11 Pro' },
     { value: 'Home', label: 'Windows 11 Home' },
-    { value: 'Enterprise', label: 'Windows 11 Enterprise' },
   ]
 
   const keyboardOptions = [
@@ -524,14 +523,6 @@ export function Generator() {
               onChange={(v) => patch('edition', v as UnattendConfig['edition'])}
             />
           </div>
-          {cfg.edition === 'Enterprise' && (
-            <p className="field__hint field__hint--warn">
-              {t(
-                'Enterprise нет в обычном ISO с microsoft.com. Нужен ISO Enterprise/VL.',
-                'Enterprise is not on the standard microsoft.com ISO. You need an Enterprise/VL ISO.',
-              )}
-            </p>
-          )}
           <fieldset className={`field${flashClass('field-product-key')}`}>
             <legend className="field__label">{t('Ключ продукта', 'Product key')}</legend>
             <div className="choices">
@@ -581,61 +572,13 @@ export function Generator() {
 
         <section id="disk" className="block">
           <h2 className="block__title">{t('Диск', 'Disk')}</h2>
-          <fieldset className="field">
-            <legend className="field__label">{t('Режим', 'Mode')}</legend>
-            <div className="choices">
-              <label className="choice">
-                <input
-                  type="radio"
-                  name="diskMode"
-                  checked={cfg.diskMode === 'interactive'}
-                  onChange={() =>
-                    setCfg((prev) => ({
-                      ...prev,
-                      diskMode: 'interactive',
-                      installDrive: 'C',
-                    }))
-                  }
-                />
-                <span className="choice__mark choice__mark--radio" aria-hidden />
-                <span className="choice__text">
-                  {t(
-                    'Выбрать раздел вручную в Setup',
-                    'Pick the partition manually in Setup',
-                  )}
-                </span>
-              </label>
-              <label className="choice">
-                <input
-                  type="radio"
-                  name="diskMode"
-                  checked={cfg.diskMode === 'wipe0'}
-                  onChange={() => patch('diskMode', 'wipe0')}
-                />
-                <span className="choice__mark choice__mark--radio" aria-hidden />
-                <span className="choice__text">
-                  {t(
-                    'Стереть системный диск и разметить автоматически',
-                    'Wipe the internal disk and partition automatically',
-                  )}
-                </span>
-              </label>
-            </div>
-          </fieldset>
           <p className="field__hint">
-            {cfg.diskMode === 'wipe0'
-              ? t(
-                  'Полностью автоматическая установка: WinPE сам разметит диск, распакует образ через dism и перезагрузится. Экраны ключа, редакции и диска не показываются. Можно уйти. Если диск меньше суммы разделов, C: уменьшится автоматически.',
-                  'Fully unattended install: WinPE partitions the disk, applies the image with dism, and reboots. No product key, edition, or disk screens. Walk away. If the disk is smaller than the volume sizes, C: shrinks automatically.',
-                )
-              : t(
-                  'Ручной режим: Setup спросит, куда ставить Windows. Для установки без участия выберите авторазметку.',
-                  'Manual mode: Setup will ask where to install Windows. For hands-off install, use automatic partitioning.',
-                )}
+            {t(
+              'Авторазметка: WinPE сам найдёт внутренний диск, создаст разделы и установит Windows без экранов Setup. Если диск меньше суммы разделов, C: уменьшится автоматически.',
+              'Automatic layout: WinPE finds the internal disk, creates volumes, and installs Windows with no Setup prompts. If the disk is smaller than the sizes below, C: shrinks automatically.',
+            )}
           </p>
-          {cfg.diskMode === 'wipe0' && (
-            <>
-              <div id="field-volumes" className={`field${flashClass('field-volumes')}`}>
+          <div id="field-volumes" className={`field${flashClass('field-volumes')}`}>
                 <div className="field__label">
                   {t('Разделы (2-5)', 'Volumes (2-5)')}
                 </div>
@@ -745,8 +688,6 @@ export function Generator() {
                   </button>
                 )}
               </div>
-            </>
-          )}
         </section>
 
         <section id="account" className="block">
@@ -964,7 +905,7 @@ export function Generator() {
               )}
             </p>
           )}
-          {cfg.diskMode === 'wipe0' && (
+          {cfg.installApps.length > 0 && (
             <div
               className={`field${flashClass('field-install-drive')}`}
               id="field-install-drive"
@@ -987,31 +928,6 @@ export function Generator() {
                   }))}
                 onChange={(v) => patch('installDrive', v)}
               />
-            </div>
-          )}
-          {cfg.diskMode === 'interactive' && cfg.installApps.length > 0 && (
-            <div
-              className={`field${flashClass('field-install-drive')}`}
-              id="field-install-drive"
-            >
-              <span className="field__label">
-                {t('Диск для программ (буква)', 'Apps install drive (letter)')}
-              </span>
-              <DeferredTextInput
-                className="field__control field__control--narrow"
-                value={cfg.installDrive}
-                onCommit={(v) =>
-                  patch('installDrive', v.toUpperCase().slice(0, 1))
-                }
-                autoComplete="off"
-                maxLength={1}
-              />
-              <p className="field__hint">
-                {t(
-                  'C: — стандартный путь. D:\\Apps и т.д., если раздел уже есть после установки.',
-                  'C: for default paths. Use D:\\Apps etc. if that volume exists after setup.',
-                )}
-              </p>
             </div>
           )}
           <div className="apps-toolbar">
@@ -1585,48 +1501,35 @@ export function Generator() {
             <section className="summary__group">
               <h3 className="summary__group-title">{t('Диск', 'Disk')}</h3>
               <dl className="summary__list">
-                <div className="summary__row">
-                  <dt>{t('Режим', 'Mode')}</dt>
+                <div className="summary__row summary__row--stack">
+                  <dt>{t('Разделы', 'Volumes')}</dt>
                   <dd>
-                    {cfg.diskMode === 'wipe0'
-                      ? t(
-                          'Стереть системный диск и разметить',
-                          'Wipe internal disk and partition',
-                        )
-                      : t('Раздел вручную в Setup', 'Pick partition in Setup')}
+                    <ul className="summary__apps">
+                      {cfg.volumes.map((v, i) => (
+                        <li key={`${v.letter}-${i}`}>
+                          {i === cfg.volumes.length - 1
+                            ? t(
+                                `${v.letter}: остаток «${v.label}»`,
+                                `${v.letter}: remainder “${v.label}”`,
+                              )
+                            : t(
+                                `${v.letter}: ${v.sizeGb ?? '-'} ГБ «${v.label}»`,
+                                `${v.letter}: ${v.sizeGb ?? '-'} GB “${v.label}”`,
+                              )}
+                        </li>
+                      ))}
+                    </ul>
                   </dd>
                 </div>
-                {cfg.diskMode === 'wipe0' && (
-                  <>
-                    <div className="summary__row summary__row--stack">
-                      <dt>{t('Разделы', 'Volumes')}</dt>
-                      <dd>
-                        <ul className="summary__apps">
-                          {cfg.volumes.map((v, i) => (
-                            <li key={`${v.letter}-${i}`}>
-                              {i === cfg.volumes.length - 1
-                                ? t(
-                                    `${v.letter}: остаток «${v.label}»`,
-                                    `${v.letter}: remainder “${v.label}”`,
-                                  )
-                                : t(
-                                    `${v.letter}: ${v.sizeGb ?? '-'} ГБ «${v.label}»`,
-                                    `${v.letter}: ${v.sizeGb ?? '-'} GB “${v.label}”`,
-                                  )}
-                            </li>
-                          ))}
-                        </ul>
-                      </dd>
-                    </div>
-                    <div className="summary__row">
-                      <dt>{t('Программы', 'Apps path')}</dt>
-                      <dd>
-                        {cfg.installDrive === 'C'
-                          ? t('C: (по умолчанию)', 'C: (default)')
-                          : `${cfg.installDrive}:\\Apps`}
-                      </dd>
-                    </div>
-                  </>
+                {cfg.installApps.length > 0 && (
+                  <div className="summary__row">
+                    <dt>{t('Программы', 'Apps path')}</dt>
+                    <dd>
+                      {cfg.installDrive === 'C'
+                        ? t('C: (по умолчанию)', 'C: (default)')
+                        : `${cfg.installDrive}:\\Apps`}
+                    </dd>
+                  </div>
                 )}
               </dl>
             </section>

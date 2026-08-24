@@ -152,12 +152,14 @@ function bloatScript(cfg: UnattendConfig): string {
     (p) => p.id,
   )
 
-  const lines = [
-    '$ErrorActionPreference = "SilentlyContinue"',
-    ...remove.map(
+  const removeCmds = remove.map(
       (id) =>
         `Get-AppxPackage -AllUsers "${id}" | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue; Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "${id}" } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue`,
-    ),
+    )
+  const lines = [
+    '$ErrorActionPreference = "SilentlyContinue"',
+    ...removeCmds,
+    ...removeCmds,
   ]
 
   if (!keep.has('edge')) {
@@ -305,17 +307,22 @@ function bloatScript(cfg: UnattendConfig): string {
       drive && drive !== 'C' ? ` --location "${drive}:\\Apps"` : ''
     const wingetLines = [
       '$ErrorActionPreference = "SilentlyContinue"',
+      '$deadline=(Get-Date).AddMinutes(30)',
+      'while((Get-Date) -lt $deadline){ if(Test-Connection 1.1.1.1 -Count 1 -Quiet -ErrorAction SilentlyContinue){ break }; Start-Sleep 5 }',
       '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")',
       ...wingetIds.map(
         (id) =>
           `winget install -e --id ${id} --accept-package-agreements --accept-source-agreements --disable-interactivity${locationArg}`,
       ),
+      'Unregister-ScheduledTask -TaskName WinToolsApps -Confirm:$false -ErrorAction SilentlyContinue',
     ]
     const wingetLiteral = wingetLines
       .map((l) => `'${l.replace(/'/g, "''")}'`)
       .join(',')
     lines.push(
-      `$wt=Join-Path $env:TEMP 'wintools-winget.ps1'; Set-Content -Path $wt -Encoding UTF8 -Value @(${wingetLiteral}); Start-Process powershell.exe -WindowStyle Hidden -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$wt)`,
+      `$wt=Join-Path $env:TEMP 'wintools-winget.ps1'; Set-Content -Path $wt -Encoding UTF8 -Value @(${wingetLiteral})`,
+      `$wa=New-ScheduledTaskAction -Execute powershell.exe -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File',$wt); $wtg=New-ScheduledTaskTrigger -AtLogOn; Register-ScheduledTask -TaskName WinToolsApps -Action $wa -Trigger $wtg -Force | Out-Null`,
+      `Start-Process powershell.exe -WindowStyle Hidden -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$wt)`,
     )
   }
 
@@ -581,6 +588,15 @@ export function validateConfig(
       targetId: 'field-product-key',
     })
   }
+  if (cfg.diskMode === 'interactive') {
+    errors.push({
+      message: t(
+        'Ручной выбор диска больше не поддерживается. Используйте авторазметку.',
+        'Manual disk selection is no longer supported. Use automatic partitioning.',
+      ),
+      targetId: 'field-volumes',
+    })
+  }
   if (cfg.edition === 'Enterprise') {
     errors.push({
       message: t(
@@ -604,6 +620,10 @@ export function buildUnattendXml(cfg: UnattendConfig): string {
   const locale = inputLocale(cfg)
   const pass = esc(cfg.password)
   const user = esc(cfg.userName.trim())
+  const privacyOobe =
+    cfg.expressPrivacy === 'disable-all'
+      ? '<HidePrivacyExperience>true</HidePrivacyExperience>'
+      : ''
   const protect =
     cfg.expressPrivacy === 'disable-all'
       ? '<ProtectYourPC>3</ProtectYourPC>'
@@ -646,6 +666,8 @@ export function buildUnattendXml(cfg: UnattendConfig): string {
         <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
         <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
         <HideLocalAccountScreen>true</HideLocalAccountScreen>
+        <HidePinSignInOption>true</HidePinSignInOption>
+        ${privacyOobe}
         ${protect}
       </OOBE>
       <UserAccounts>

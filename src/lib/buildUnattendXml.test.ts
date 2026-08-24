@@ -98,11 +98,15 @@ test('product key uses generic GVLK when none and custom key when set', () => {
   )
 })
 
-test('interactive disk hides edition picker when image is preset', () => {
-  const xml = buildUnattendXml({ ...sampleConfig, diskMode: 'interactive' })
-  assert.match(xml, /<WillShowUI>Never<\/WillShowUI>/)
-  assert.doesNotMatch(xml, /<WillShowUI>Always<\/WillShowUI>/)
-  assert.doesNotMatch(xml, /<InstallToAvailablePartition>/)
+test('interactive disk mode is rejected', () => {
+  const errors = validateConfig({ ...sampleConfig, diskMode: 'interactive' })
+  assert.ok(errors.some((e) => e.targetId === 'field-volumes'))
+})
+
+test('OOBE hides privacy when disable-all', () => {
+  const xml = buildUnattendXml({ ...sampleConfig, expressPrivacy: 'disable-all' })
+  assert.match(xml, /<HidePrivacyExperience>true<\/HidePrivacyExperience>/)
+  assert.match(xml, /<ProtectYourPC>3<\/ProtectYourPC>/)
 })
 
 test('windowsPE disables DynamicUpdate and bypasses TPM checks', () => {
@@ -214,7 +218,7 @@ test('tweaks and vcredist appear in FirstLogon script', () => {
   assert.match(script, /PreventDeviceEncryption/)
   assert.match(script, /Microsoft\.VCRedist\.2015\+\.x64/)
   assert.match(script, /Microsoft\.VCRedist\.2015\+\.x86/)
-  assert.match(script, /wintools-winget\.ps1/)
-  assert.match(script, /Start-Process powershell\.exe -WindowStyle Hidden/)
+  assert.match(script, /WinToolsApps/)
+  assert.match(script, /Test-Connection/)
   assert.match(script, /Start-Process explorer\.exe/)
 })
