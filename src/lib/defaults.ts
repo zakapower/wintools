@@ -35,7 +35,7 @@ export const defaultConfig: UnattendConfig = {
   installApps: [],
   disableWidgets: false,
   disableConsumerFeatures: false,
-  expressPrivacy: 'default',
+  expressPrivacy: 'disable-all',
   showFileExtensions: false,
   showHiddenFiles: false,
   taskbarSearchHidden: false,

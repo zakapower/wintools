@@ -75,17 +75,6 @@ export function Generator() {
     { value: 'Enterprise', label: 'Windows 11 Enterprise' },
   ]
 
-  const privacyOptions = [
-    {
-      value: 'disable-all',
-      label: t('Минимум данных Microsoft', 'Minimize Microsoft data'),
-    },
-    {
-      value: 'default',
-      label: t('По умолчанию Windows', 'Windows defaults'),
-    },
-  ]
-
   const keyboardOptions = [
     { value: 'ru', label: t('Русская', 'Russian') },
     { value: 'en', label: t('English', 'English') },
@@ -1149,19 +1138,37 @@ export function Generator() {
                 </span>
               </label>
             </div>
-            <div className="field">
-              <span className="field__label">
+            <fieldset className="field">
+              <legend className="field__label">
                 {t('Конфиденциальность (Express)', 'Privacy (Express)')}
-              </span>
-              <FieldSelect
-                aria-label={t('Конфиденциальность', 'Privacy')}
-                value={cfg.expressPrivacy}
-                options={privacyOptions}
-                onChange={(v) =>
-                  patch('expressPrivacy', v as UnattendConfig['expressPrivacy'])
-                }
-              />
-            </div>
+              </legend>
+              <div className="choices">
+                <label className="choice">
+                  <input
+                    type="radio"
+                    name="expressPrivacy"
+                    checked={cfg.expressPrivacy === 'disable-all'}
+                    onChange={() => patch('expressPrivacy', 'disable-all')}
+                  />
+                  <span className="choice__mark choice__mark--radio" aria-hidden />
+                  <span className="choice__text">
+                    {t('Минимум данных Microsoft', 'Minimize Microsoft data')}
+                  </span>
+                </label>
+                <label className="choice">
+                  <input
+                    type="radio"
+                    name="expressPrivacy"
+                    checked={cfg.expressPrivacy === 'default'}
+                    onChange={() => patch('expressPrivacy', 'default')}
+                  />
+                  <span className="choice__mark choice__mark--radio" aria-hidden />
+                  <span className="choice__text">
+                    {t('По умолчанию Windows', 'Windows defaults')}
+                  </span>
+                </label>
+              </div>
+            </fieldset>
           </div>
 
           <div className="tweak-group">
