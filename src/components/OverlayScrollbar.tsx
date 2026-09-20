@@ -5,8 +5,7 @@ import './OverlayScrollbar.css'
 
 const HIDE_DELAY_MS = 900
 const MIN_THUMB = 36
-const ARROW = 20
-const STEP = 72
+const EDGE = 2
 const SIZE_EPS = 8
 
 export function OverlayScrollbar() {
@@ -18,15 +17,13 @@ export function OverlayScrollbar() {
   const resizeRaf = useRef(0)
   const drag = useRef<{ startY: number; startTop: number } | null>(null)
   const hovering = useRef(false)
-  const holdTimer = useRef(0)
-  const holdInterval = useRef(0)
   const headerH = useRef(0)
   const lastSize = useRef({ view: 0, total: 0 })
   const metrics = useRef({
     view: 0,
     total: 0,
     thumbHeight: MIN_THUMB,
-    thumbTop: ARROW,
+    thumbTop: EDGE,
     track: 0,
   })
   const activeRef = useRef(false)
@@ -86,7 +83,7 @@ export function OverlayScrollbar() {
       }
 
       const railH = railRef.current?.clientHeight || Math.max(0, view - h)
-      const track = Math.max(0, railH - ARROW * 2)
+      const track = Math.max(0, railH - EDGE * 2)
       const ratio = view / total
       const rawHeight = Math.max(MIN_THUMB, Math.round(track * ratio))
       const prevHeight = metrics.current.thumbHeight
@@ -99,9 +96,9 @@ export function OverlayScrollbar() {
 
       const top =
         total === view
-          ? ARROW
-          : ARROW + Math.round((root.scrollTop / (total - view)) * maxTop)
-      metrics.current.thumbTop = Math.min(ARROW + maxTop, Math.max(ARROW, top))
+          ? EDGE
+          : EDGE + Math.round((root.scrollTop / (total - view)) * maxTop)
+      metrics.current.thumbTop = Math.min(EDGE + maxTop, Math.max(EDGE, top))
       applyThumb(metrics.current.thumbTop, height)
     }
 
@@ -110,8 +107,8 @@ export function OverlayScrollbar() {
       if (total <= view) return
       const maxTop = Math.max(0, track - thumbHeight)
       const top =
-        ARROW + Math.round((root.scrollTop / (total - view)) * maxTop)
-      metrics.current.thumbTop = Math.min(ARROW + maxTop, Math.max(ARROW, top))
+        EDGE + Math.round((root.scrollTop / (total - view)) * maxTop)
+      metrics.current.thumbTop = Math.min(EDGE + maxTop, Math.max(EDGE, top))
       applyThumb(metrics.current.thumbTop, thumbHeight)
     }
 
@@ -181,8 +178,6 @@ export function OverlayScrollbar() {
       window.cancelAnimationFrame(raf.current)
       window.cancelAnimationFrame(resizeRaf.current)
       window.clearTimeout(hideTimer.current)
-      window.clearTimeout(holdTimer.current)
-      window.clearInterval(holdInterval.current)
     }
   }, [])
 
@@ -191,13 +186,13 @@ export function OverlayScrollbar() {
     const root = document.documentElement
     const view = root.clientHeight
     const total = root.scrollHeight
-    const track = Math.max(0, view - headerH.current - ARROW * 2)
+    const track = Math.max(0, view - headerH.current - EDGE * 2)
     const ratio = total > 0 ? view / total : 1
     const thumbHeight = Math.max(MIN_THUMB, Math.round(track * ratio))
     const maxTop = Math.max(0, track - thumbHeight)
     const maxScroll = Math.max(1, total - view)
     const thumbTop =
-      ARROW + Math.round((root.scrollTop / maxScroll) * maxTop)
+      EDGE + Math.round((root.scrollTop / maxScroll) * maxTop)
     metrics.current.view = view
     metrics.current.total = total
     metrics.current.track = track
@@ -217,9 +212,9 @@ export function OverlayScrollbar() {
       const { view, total, thumbHeight, track } = metrics.current
       const maxTop = Math.max(0, track - thumbHeight)
       const nextTop = Math.min(
-        ARROW + maxTop,
+        EDGE + maxTop,
         Math.max(
-          ARROW,
+          EDGE,
           drag.current.startTop + (clientY - drag.current.startY),
         ),
       )
@@ -227,7 +222,7 @@ export function OverlayScrollbar() {
       if (thumbRef.current) thumbRef.current.style.top = `${nextTop}px`
       const maxScroll = total - view
       root.scrollTop =
-        maxTop === 0 ? 0 : ((nextTop - ARROW) / maxTop) * maxScroll
+        maxTop === 0 ? 0 : ((nextTop - EDGE) / maxTop) * maxScroll
     }
 
     function onMove(e: PointerEvent) {
@@ -264,35 +259,6 @@ export function OverlayScrollbar() {
     }
   }, [needed])
 
-  function scrollByStep(delta: number) {
-    document.documentElement.scrollBy({ top: delta, behavior: 'auto' })
-    if (!activeRef.current) {
-      activeRef.current = true
-      railRef.current?.classList.add('overlay-scrollbar--active')
-    }
-  }
-
-  function startHold(delta: number) {
-    scrollByStep(delta)
-    window.clearTimeout(holdTimer.current)
-    window.clearInterval(holdInterval.current)
-    holdTimer.current = window.setTimeout(() => {
-      holdInterval.current = window.setInterval(() => scrollByStep(delta), 50)
-    }, 320)
-  }
-
-  function stopHold() {
-    window.clearTimeout(holdTimer.current)
-    window.clearInterval(holdInterval.current)
-    window.clearTimeout(hideTimer.current)
-    hideTimer.current = window.setTimeout(() => {
-      if (!hovering.current && !drag.current) {
-        activeRef.current = false
-        railRef.current?.classList.remove('overlay-scrollbar--active')
-      }
-    }, HIDE_DELAY_MS)
-  }
-
   if (!needed) return null
 
   return (
@@ -317,17 +283,6 @@ export function OverlayScrollbar() {
       }}
     >
       <button
-        type="button"
-        className="overlay-scrollbar__arrow overlay-scrollbar__arrow--up"
-        tabIndex={-1}
-        onPointerDown={(e) => {
-          e.preventDefault()
-          startHold(-STEP)
-        }}
-        onPointerUp={stopHold}
-        onPointerCancel={stopHold}
-      />
-      <button
         ref={thumbRef}
         type="button"
         className="overlay-scrollbar__thumb"
@@ -344,17 +299,6 @@ export function OverlayScrollbar() {
           window.clearTimeout(hideTimer.current)
           e.currentTarget.setPointerCapture(e.pointerId)
         }}
-      />
-      <button
-        type="button"
-        className="overlay-scrollbar__arrow overlay-scrollbar__arrow--down"
-        tabIndex={-1}
-        onPointerDown={(e) => {
-          e.preventDefault()
-          startHold(STEP)
-        }}
-        onPointerUp={stopHold}
-        onPointerCancel={stopHold}
       />
     </div>
   )
