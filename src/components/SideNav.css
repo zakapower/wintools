@@ -81,7 +81,7 @@
 
 @media (max-width: 860px) {
   .side-nav {
-    padding: 0.55rem 0 0.65rem;
+    padding: 0.2rem 0 0.35rem;
     border: 0;
     border-bottom: 1px solid var(--line);
     border-radius: 0;

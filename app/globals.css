@@ -129,7 +129,7 @@ main {
 @media (max-width: 720px) {
   :root {
     --gutter: 0.9rem;
-    --header-h: calc(0.75rem + 2.35rem + 0.7rem + 2.65rem + 1px);
+    --header-h: calc(0.75rem + 2.35rem + 0.7rem + 1px + 2.45rem + 1px);
   }
 }
 
