@@ -7,7 +7,7 @@ import { Check, Download, RotateCcw, Trash2, Upload } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { defaultConfig } from '@/lib/defaults'
 import { buildUnattendXml, validateConfig } from '@/lib/buildUnattendXml'
-import { parseUnattendXml } from '@/lib/parseUnattendXml'
+import { decodeUnattendXml, parseUnattendXml } from '@/lib/parseUnattendXml'
 import {
   APP_CATALOG,
   type KeepAppId,
@@ -307,7 +307,7 @@ export function Generator() {
     setImportUnsupported([])
     setError(null)
     try {
-      const text = await file.text()
+      const text = decodeUnattendXml(await file.arrayBuffer())
       const result = parseUnattendXml(text, lang)
       if (!result.ok) {
         setImportError(result.error)

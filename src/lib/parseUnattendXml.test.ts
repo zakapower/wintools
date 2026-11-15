@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { defaultConfig } from './defaults.ts'
 import { buildUnattendXml } from './buildUnattendXml.ts'
-import { parseUnattendXml } from './parseUnattendXml.ts'
+import { decodeUnattendXml, parseUnattendXml } from './parseUnattendXml.ts'
 import type { UnattendConfig } from './types.ts'
 
 const sampleConfig = {
@@ -19,6 +19,15 @@ const sampleConfig = {
   disableTelemetry: true,
   keepApps: ['edge', 'todos'] as const,
 }
+
+test('decodeUnattendXml preserves Cyrillic in UTF-8 and UTF-16', () => {
+  const xml = '<DisplayName>Администратор</DisplayName>'
+  const utf16le = Buffer.from('\uFEFF' + xml, 'utf16le')
+  const utf16be = Buffer.from(utf16le).swap16()
+  for (const encoded of [Buffer.from(xml, 'utf8'), utf16le, utf16be]) {
+    assert.equal(decodeUnattendXml(Uint8Array.from(encoded).buffer), xml)
+  }
+})
 
 test('parseUnattendXml round-trips WinTools XML', () => {
   const xml = buildUnattendXml({

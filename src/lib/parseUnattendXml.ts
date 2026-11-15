@@ -193,6 +193,17 @@ function detectUnsupported(xml: string, lang: 'ru' | 'en'): string[] {
   return [...new Set(out)]
 }
 
+export function decodeUnattendXml(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer)
+  if (bytes[0] === 0xff && bytes[1] === 0xfe) {
+    return new TextDecoder('utf-16le', { fatal: true }).decode(bytes)
+  }
+  if (bytes[0] === 0xfe && bytes[1] === 0xff) {
+    return new TextDecoder('utf-16be', { fatal: true }).decode(bytes)
+  }
+  return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+}
+
 export function parseUnattendXml(
   xml: string,
   lang: 'ru' | 'en' = 'ru',
