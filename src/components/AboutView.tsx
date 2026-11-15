@@ -1,46 +1,28 @@
 'use client'
 
 import Link from 'next/link'
-import { BookOpen, ShieldCheck, Wrench } from 'lucide-react'
+import { BookOpen, CircleAlert, ShieldCheck, Wrench } from 'lucide-react'
 import { SiGithub } from '@icons-pack/react-simple-icons'
 import { useApp } from '@/context/AppContext'
 import './About.css'
 
-const GITHUB_URL = 'https://github.com/zakapower'
+const GITHUB_URL = 'https://github.com/zakapower/wintools'
 
 export function AboutView() {
   const { t } = useApp()
 
   return (
     <article className="about">
-      <header className="about__head">
-        <p className="about__kicker">WinTools</p>
-        <h1>{t('О проекте', 'About')}</h1>
-        <p className="about__lead">
-          {t(
-            'Зачем нужен WinTools и чем он не является.',
-            'What WinTools is for and what it is not.',
-          )}
-        </p>
-      </header>
-
       <section className="about-card">
         <span className="about-card__icon" aria-hidden>
           <Wrench strokeWidth={2} />
         </span>
         <div className="about-card__body">
-          <h2>{t('Что это', 'What this is')}</h2>
+          <h1>{t('О WinTools', 'About WinTools')}</h1>
           <p>
             {t(
-              'WinTools - минималистичный генератор autounattend.xml для Windows 11. Ответы мастера собираются в спокойном UI: скачиваете один файл и ставите систему с флешки без кабинетов и облака. Как записать флешку - во вкладке',
-              'WinTools is a minimal autounattend.xml generator for Windows 11. Setup answers are collected in a calm UI: download one file and install from a USB stick, with no accounts or cloud. How to write the USB is in the',
-            )}{' '}
-            <Link href="/guide">{t('Инструкция', 'Guide')}</Link>.
-          </p>
-          <p>
-            {t(
-              'Это не официальный инструмент Microsoft, а генератор ответа для личной переустановки.',
-              'This is not an official Microsoft tool, just an answer-file generator for a personal reinstall.',
+              'WinTools помогает заранее настроить установку Windows 11. Можно выбрать язык, настроить диск и учётную запись, а также указать, какие приложения установить.',
+              'WinTools helps you set up your Windows 11 installation in advance. Choose the language, configure the disk and account, and pick the apps you want to install.',
             )}
           </p>
         </div>
@@ -51,11 +33,11 @@ export function AboutView() {
           <ShieldCheck strokeWidth={2} />
         </span>
         <div className="about-card__body">
-          <h2>{t('Приватность', 'Privacy')}</h2>
+          <h2>{t('Настройки и файлы', 'Settings and files')}</h2>
           <p>
             {t(
-              'Нет регистрации и облачного аккаунта. Язык, тема и черновик настроек живут локально в браузере. Сервер только собирает XML по запросу и ничего не сохраняет: ни ключей, ни паролей, ни имени ПК. Данные не продаются и не уходят в аналитику.',
-              'No sign-up and no cloud account. Language, theme, and the draft config stay locally in the browser. The server only builds XML on request and stores nothing: no keys, passwords, or PC names. Nothing is sold or shipped to analytics.',
+              'WinTools открывает и создаёт XML прямо в браузере. Если вы задали пароль для учётной записи, он может сохраниться в файле в открытом виде. Такой файл лучше никому не пересылать.',
+              'WinTools opens and creates XML files in your browser. If you set an account password, it may be saved in plain text. Keep that file to yourself.',
             )}
           </p>
         </div>
@@ -63,14 +45,14 @@ export function AboutView() {
 
       <section className="about-card">
         <span className="about-card__icon" aria-hidden>
-          <SiGithub color="currentColor" size={20} title="" aria-hidden />
+          <CircleAlert strokeWidth={2} />
         </span>
         <div className="about-card__body">
-          <h2>{t('Исходный код', 'Source')}</h2>
+          <h2>{t('Перед установкой', 'Before installing')}</h2>
           <p>
             {t(
-              'WinTools - свободная программа с открытым исходным кодом. Репозиторий, ошибки и предложения на GitHub.',
-              'WinTools is free and open source. The repository, issues, and ideas are on GitHub.',
+              'Режим очистки удаляет данные с выбранного диска. Перед установкой проверьте, какой диск выбрали, и скопируйте важные файлы на другой носитель.',
+              'Disk wipe mode erases data on the selected disk. Before installing, double-check the disk and back up important files to another drive.',
             )}
           </p>
         </div>
@@ -86,7 +68,7 @@ export function AboutView() {
           <SiGithub color="currentColor" size={20} title="" aria-hidden />
           <span>
             <strong>GitHub</strong>
-            <em>{t('Код, ошибки и идеи', 'Code, issues, and ideas')}</em>
+            <em>{t('Код проекта и сообщения об ошибках', 'Project code and issue reports')}</em>
           </span>
         </a>
         <Link href="/guide" className="about-cta">
@@ -94,7 +76,7 @@ export function AboutView() {
           <span>
             <strong>{t('Инструкция', 'Guide')}</strong>
             <em>
-              {t('Как записать флешку и поставить систему', 'How to write the USB and install')}
+              {t('Как подготовить флешку и установить Windows', 'How to prepare the USB drive and install Windows')}
             </em>
           </span>
         </Link>
